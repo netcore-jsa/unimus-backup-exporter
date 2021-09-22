@@ -60,14 +60,6 @@ function saveBackup(){
 		local type ="bin"
 	fi
 
-	if ! [ -d "backups" ]; then
-		mkdir backups
-		if [ $? -ne 0 ] ; then
-			echoRed "Failed to create backups folder!"
-			exit 2
-		fi
-	fi
-
 	if ! [ -d "$backup_dir/$address - $1" ]; then
 		mkdir "$backup_dir/$address - $1"
 		if [ $? -ne 0 ] ; then
@@ -205,7 +197,7 @@ function checkVars(){
 
 function importVariables(){
 	set -a # automatically export all variables
-	source UnimusGit.env
+	source unimus-backup-exporter.env
 	set +a
 
 	checkVars "$unimus_server_address" "unimus_server_address"
@@ -235,19 +227,30 @@ function importVariables(){
 }
 
 function main(){
-	importVariables
 
 	#Set Directorys for script
 	script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
 	backup_dir=$script_dir/backups
-
 	#HashTable for all devices
 	declare -A devices
-	log=$script_dir/unimus-backup-exporter.log
+
+	#Create Backup Folder
+	if ! [ -d "backups" ]; then
+		mkdir backups
+		if [ $? -ne 0 ] ; then
+			echoRed "Failed to create backups folder!"
+			exit 2
+		fi
+	fi
 
 	#Creating a log file
+	log=unimus-backup-exporter.log
 	printf "Log File - " >> $log
 	date +"%b-%d-%y %H:%M" >> $log
+
+	#Importing variables
+	importVariables
+
 	if [[ $(unimusStatusCheck) == "OK" ]]; then
 		#Getting All Device Information
 		echoGreen "Getting Device Data"
