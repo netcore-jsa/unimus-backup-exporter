@@ -2,7 +2,6 @@
 
 #This is a Unimus to Git API to export your backups to your Git Repo
 
-#Imports from env
 
 # $1 is echo message
 function echoGreen(){
@@ -59,7 +58,6 @@ function saveBackup(){
 	elif [[ $4 == "BINARY" ]]; then
 		local type ="bin"
 	fi
-
 	if ! [ -d "$backup_dir/$address - $1" ]; then
 		mkdir "$backup_dir/$address - $1"
 		if [ $? -ne 0 ] ; then
@@ -76,9 +74,7 @@ function saveBackup(){
 function getAllDevices(){
 	echoGreen "Getting Device Information"
 	for ((page=0; ; page+=1)); do
-
 		local contents=$(unimusGet "devices?page=$page")
-		
 		for((data=0; ; data+=1)); do
 			if ( jq -e ".data[$data] | length == 0" <<< $contents) >/dev/null; then
 				break
@@ -88,7 +84,6 @@ function getAllDevices(){
 				devices[${value[0]}]=$(echo ${value[1]}  | tr -d '"')
 			fi
 		done
-
 		if ( jq -e '.data | length == 0' <<< $contents ) >/dev/null; then
 			break
 		fi 
@@ -104,7 +99,6 @@ function getAllBackups(){
 				if  ( jq -e ".data[$data] | length == 0" <<<  $contents) >/dev/null; then
 					break
 				fi
-
 				local deviceId=$key
 				local date="$(jq -e -r ".data[$data].validSince" <<< $contents | { read tme ; date "+%F-%T-%Z" -d "@$tme" ; })"
 				local backup=$(jq -e -r ".data[$data].bytes" <<< $contents)
@@ -121,19 +115,14 @@ function getAllBackups(){
 
 #Will Pull down backups and save to Disk
 function getLatestBackups(){
-
 	#Query for latest backups. This will loop through getting every page
-
 	for ((page=0; ; pagae+=1)); do
 		local contents=$(unimusGet "devices/backups/latest?page=$page")
-
 		for ((data=0; ; data+=1)); do
-
 			#Breaks if looped through all devices
 			if  ( jq -e ".data[$data] | length == 0" <<<  $contents) >/dev/null; then
 				break
 			fi
-
 			local deviceId=$(jq -e -r ".data[$data].deviceId" <<< $contents)
 			local date="$(jq -e -r ".data[$data].backup.validSince" <<< $contents | { read tme ; date "+%F-%T-%Z" -d "@$tme" ; })"
 			local backup=$(jq -e -r ".data[$data].backup.bytes" <<< $contents)
@@ -147,6 +136,7 @@ function getLatestBackups(){
 		fi 
 	done
 }
+
 
 function pushToGit(){
 	cd $backup_dir
@@ -173,7 +163,6 @@ function pushToGit(){
 			echoGreen "Invalid setting for git_server_protocal" 
 			;;
 		esac
-
 		git push -u orgin $branch
 		git push 
 	else
@@ -183,6 +172,7 @@ function pushToGit(){
 	fi
 	cd $script_dir
 }
+
 
 #We can't pass the variable name in any way. 
 # $1 is the variable
@@ -195,28 +185,24 @@ function checkVars(){
 	fi
 }
 
+
 function importVariables(){
 	set -a # automatically export all variables
 	source unimus-backup-exporter.env
 	set +a
-
 	checkVars "$unimus_server_address" "unimus_server_address"
 	checkVars "$unimus_api_key" "unimus_api_key"
 	checkVars "$backup_type" "backup_type"
 	checkVars "$export_type" "export_type"
-
 	if [[ "$export_type" == "git" ]]; then
 		checkVars "$git_username" "git_username"
-
 		#Only Checking for password for http. SSH may or may not require a password.
-		if [[ "$git_server_protocal" == "http" ]]; then
+		if [[ -z "$git_server_protocal" == "ssh" ]]; then
 			if [[ -z "$git_password" ]]; then
 				echoRed "Please Provide a git password"
 				exit 2
 			fi
 		fi
-
-		checkVars "$git_password" "git_password"
 		checkVars "$git_email" "git_email"
 		checkVars "$git_server_protocal" "git_server_protocal"
 		checkVars "$git_server_address" "git_server_address"
@@ -226,14 +212,13 @@ function importVariables(){
 	fi
 }
 
-function main(){
 
+function main(){
 	#Set Directorys for script
 	script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
 	backup_dir=$script_dir/backups
 	#HashTable for all devices
 	declare -A devices
-
 	#Create Backup Folder
 	if ! [ -d "backups" ]; then
 		mkdir backups
@@ -242,15 +227,12 @@ function main(){
 			exit 2
 		fi
 	fi
-
 	#Creating a log file
 	log=unimus-backup-exporter.log
 	printf "Log File - " >> $log
 	date +"%b-%d-%y %H:%M" >> $log
-
 	#Importing variables
 	importVariables
-
 	if [[ $(unimusStatusCheck) == "OK" ]]; then
 		#Getting All Device Information
 		echoGreen "Getting Device Data"
@@ -265,7 +247,6 @@ function main(){
 			getAllBackups
 			;;
 		esac
-
 		#If no server protocal is selected we will not push to git.
 		#Otherwise We push to Git
 		case $export_type in 
@@ -277,7 +258,6 @@ function main(){
 			echoGreen "Exporting to FS"
 			;;
 		esac
-
 	else
 		if [[ -z $status ]]; then
 			echoRed "Unable to Connect to server"
@@ -286,5 +266,6 @@ function main(){
 		fi
 	fi
 }
+
 
 main

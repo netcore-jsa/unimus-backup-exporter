@@ -1,16 +1,18 @@
 # Unimus Backup Exporter 
 
-The Unimus backup exporter is a bash script that exports backups from your Unimus server, store backups locally, and push them to a git repo if desired.
+The Unimus backup exporter is a bash script that exports backups from your Unimus server, stores backups locally, and pushes them to a git repo if desired.
 
 ## _Requirements_
 
-The only requirements for this script are bash, jq, and base64. 
+The only requirements for this script are bash, curl, jq, and base64. If using git, git is required. 
 
 ## _How to use the Exporter_ 
 
 To use the exporter, you must configure the scripts env file with your credentials. The script call extract all backups, or just the latest backups depending on configuration. 
 
 If you are using this script to push backups to git, it will create a git repo based on the settings in your env file, and then push backups to that repo. 
+
+"Add Step by step"
 
 ## _Configuration File_
 
