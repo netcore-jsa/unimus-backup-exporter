@@ -61,7 +61,7 @@ In addition to these basic requirements, using git requires some of these additi
  To run your script periodically, the most common solution will be scheduling a cron job. Adding the following line to /etc/crontab will set up the script to run every night at 3AM
  
  
-``` bash
+``` 
 0 3 * * * root /path-to-script/unimus-backup-exporter.sh
 ```
 Note: Using root as your user is not recommended. 
