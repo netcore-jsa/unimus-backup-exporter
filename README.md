@@ -58,7 +58,7 @@ In addition to these basic requirements, using git requires some of these additi
  
  ## _Automating the exporter_
  
- To run your script periodically, the most common solution will be csheduling a cron job. Adding the following line to /etc/crontab will set up the script to run every night at 3AM
+ To run your script periodically, the most common solution will be scheduling a cron job. Adding the following line to /etc/crontab will set up the script to run every night at 3AM
  
  
 ``` bash
