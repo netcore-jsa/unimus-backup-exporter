@@ -197,7 +197,7 @@ function importVariables(){
 	if [[ "$export_type" == "git" ]]; then
 		checkVars "$git_username" "git_username"
 		#Only Checking for password for http. SSH may or may not require a password.
-		if [[ -z "$git_server_protocal" == "ssh" ]]; then
+		if [[  "$git_server_protocal" == "http" || "$git_server_protocal" == "https" ]]; then
 			if [[ -z "$git_password" ]]; then
 				echoRed "Please Provide a git password"
 				exit 2
