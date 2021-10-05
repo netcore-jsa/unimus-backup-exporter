@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
+# !/usr/bin/env bash
 
-#This is a Unimus to Git API to export your backups to your Git Repo
+# This is a Unimus to Git API to export your backups to your Git Repo
 
 
 # $1 is echo message
@@ -30,7 +30,7 @@ function echoRed(){
 }
 
 
-#This function will do a get request 
+# This function will do a get request 
 # $1 is the api request
 function unimusGet(){
 	local get_request=$(curl -s -H "Accept: application/json" -H "Authorization: Bearer $unimus_api_key" "$unimus_server_address/api/v2/$1")
@@ -38,7 +38,7 @@ function unimusGet(){
 }
 
 
-#Verify's Server is online
+# Verify's Server is online
 function unimusStatusCheck(){
 	local get_status=$(unimusGet "health")
 	local status=$(jq -r '.data.status' <<< $get_status)
@@ -50,7 +50,7 @@ function unimusStatusCheck(){
 # $2 is the date of the backup
 # $3 is the base64 encoded backup
 # $4 is the backup type. 
-#Decodes and Saves Backup
+# Decodes and Saves Backup
 function saveBackup(){
 	local address=${devices[$1]}
 	if [[ $4 == "TEXT" ]]; then
@@ -81,7 +81,7 @@ function getAllDevices(){
 			fi
 			if $(echo "$contents" | ${devices[(jq -e " .data[$data]")]}) >/dev/null; then
 				read -a value < <(echo $(jq -e ".data[$data] | .id, .address" <<< $contents))
-				devices[${value[0]}]=$(echo ${value[1]}  | tr -d '"')
+				devices[${value[0]}]=$(echo ${value[1]} | tr -d '"')
 			fi
 		done
 		if ( jq -e '.data | length == 0' <<< $contents ) >/dev/null; then
@@ -93,10 +93,10 @@ function getAllDevices(){
 
 function getAllBackups(){
 	for key in "${!devices[@]}"; do
-		for ((page=0; ; page+=1));do
+		for ((page=0; ; page+=1)); do
 			local contents=$(unimusGet "devices/$key/backups?page=$page")
 			for ((data=0; ; data+=1)); do
-				if  ( jq -e ".data[$data] | length == 0" <<<  $contents) >/dev/null; then
+				if ( jq -e ".data[$data] | length == 0" <<< $contents) >/dev/null; then
 					break
 				fi
 				local deviceId=$key
@@ -113,24 +113,24 @@ function getAllBackups(){
 }
 
 
-#Will Pull down backups and save to Disk
+# Will Pull down backups and save to Disk
 function getLatestBackups(){
-	#Query for latest backups. This will loop through getting every page
+	# Query for latest backups. This will loop through getting every page
 	for ((page=0; ; pagae+=1)); do
 		local contents=$(unimusGet "devices/backups/latest?page=$page")
 		for ((data=0; ; data+=1)); do
-			#Breaks if looped through all devices
-			if  ( jq -e ".data[$data] | length == 0" <<<  $contents) >/dev/null; then
+			# Breaks if looped through all devices
+			if ( jq -e ".data[$data] | length == 0" <<< $contents) >/dev/null; then
 				break
 			fi
 			local deviceId=$(jq -e -r ".data[$data].deviceId" <<< $contents)
-			local date="$(jq -e -r ".data[$data].backup.validSince" <<< $contents | { read tme ; date "+%F-%T-%Z" -d "@$tme" ; })"
+			local date=$(jq -e -r ".data[$data].backup.validSince" <<< $contents | { read tme ; date "+%F-%T-%Z" -d "@$tme" ; })
 			local backup=$(jq -e -r ".data[$data].backup.bytes" <<< $contents)
 			local type=$(jq -e -r ".data[$data].backup.type" <<< $contents)
 			saveBackup "$deviceId" "$date" "$backup" "$type"
 		done
 
-		#breaks if empty page.
+		# Breaks if empty page.
 		if [ $(jq -e '.data | length == 0' <<< $contents) ] >/dev/null; then
 			break
 		fi 
@@ -174,7 +174,7 @@ function pushToGit(){
 }
 
 
-#We can't pass the variable name in any way. 
+# We can't pass the variable name in any way. 
 # $1 is the variable
 # $2 is the name
 
@@ -187,7 +187,7 @@ function checkVars(){
 
 
 function importVariables(){
-	set -a # automatically export all variables
+	set -a # Automatically export all variables
 	source unimus-backup-exporter.env
 	set +a
 	checkVars "$unimus_server_address" "unimus_server_address"
@@ -196,8 +196,8 @@ function importVariables(){
 	checkVars "$export_type" "export_type"
 	if [[ "$export_type" == "git" ]]; then
 		checkVars "$git_username" "git_username"
-		#Only Checking for password for http. SSH may or may not require a password.
-		if [[  "$git_server_protocal" == "http" || "$git_server_protocal" == "https" ]]; then
+		# Only Checking for password for http. SSH may or may not require a password.
+		if [[ "$git_server_protocal" == "http" || "$git_server_protocal" == "https" ]]; then
 			if [[ -z "$git_password" ]]; then
 				echoRed "Please Provide a git password"
 				exit 2
@@ -214,31 +214,31 @@ function importVariables(){
 
 
 function main(){
-	#Set Directorys for script
+	# Set script directory and working dir for script
 	script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
 	backup_dir=$script_dir/backups
-	#HashTable for all devices
+	# HashTable for all devices
 	declare -A devices
-	#Create Backup Folder
-	if ! [ -d "backups" ]; then
+	# Create Backup Folder
+	if ! [ -d "backups" ] ; then
 		mkdir backups
 		if [ $? -ne 0 ] ; then
 			echoRed "Failed to create backups folder!"
 			exit 2
 		fi
 	fi
-	#Creating a log file
+	# Creating a log file
 	log=unimus-backup-exporter.log
 	printf "Log File - " >> $log
 	date +"%b-%d-%y %H:%M" >> $log
-	#Importing variables
+	# Importing variables
 	importVariables
 	if [[ $(unimusStatusCheck) == "OK" ]]; then
-		#Getting All Device Information
+		# Getting All Device Information
 		echoGreen "Getting Device Data"
 		getAllDevices
 
-		#Chooses what type of backup we will do.
+		# Chooses what type of backup we will do.
 		case $backup_type in
 			latest)
 			getLatestBackups
@@ -247,8 +247,8 @@ function main(){
 			getAllBackups
 			;;
 		esac
-		#If no server protocal is selected we will not push to git.
-		#Otherwise We push to Git
+		# If no server protocal is selected we will not push to git.
+		# Otherwise We push to Git
 		case $export_type in 
 			git)
 			pushToGit
@@ -259,10 +259,10 @@ function main(){
 			;;
 		esac
 	else
-		if [[ -z $status ]]; then
+		if [[ -z $status ]] ; then
 			echoRed "Unable to Connect to server"
 		else
-			echoRed "Server Status: $status "
+			echoRed "Server Status: $status"
 		fi
 	fi
 }
