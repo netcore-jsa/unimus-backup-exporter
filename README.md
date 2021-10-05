@@ -4,7 +4,7 @@ The Unimus backup exporter is a bash script that exports backups from your Unimu
 
 ## _Requirements_
 
-The only requirements for this script are bash, curl, jq, and base64.
+The only requirements for this script are 'bash', 'curl', 'jq', and 'base64'.
 
 ## _How to use the Exporter_ 
 
