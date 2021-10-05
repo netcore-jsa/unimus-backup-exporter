@@ -21,6 +21,7 @@ If you are using this script to push backups to git, it will create a git repo b
 ./unimus-backup-exporter.sh
 ``` 
 
+After the script runs. You will find your backups nested in a "backup" folder. Backups will be in there own folders, labeled by the Unimus Device ID, and the IP address
 
 ## _Configuration File_
 
