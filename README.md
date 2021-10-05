@@ -26,12 +26,14 @@ After the script runs. You will find your backups nested in a "backup" folder. B
 
 The most basic requirements for the script to operate are.
 
-| Setting | Value                                   |
+``` text
+|        Setting        |         Value             |
 | :-------------------  | :-----------------------  |
 | unimus_server_address | "http://192.168.0.1:8085" |
 | unimus_api_key        | "your unimus api key"     |
 | backup_type           | "all" or "latest"         |
 | export_type           | "git" or "fs"             |
+``` 
 
 backup_type
  - "all" will download all backups when the script is run
@@ -43,7 +45,8 @@ export_type
  
 In addition to these basic requirements, using git requires some of these additional requirements.
 
-| Setting             | Value                    |
+``` text
+|       Setting       |          Value           |
 | :-----------------  | :----------------------  |
 | git_username        | "foo"                    |
 | git_password        | "bar"                    |
@@ -53,7 +56,7 @@ In addition to these basic requirements, using git requires some of these additi
 | git_port            | "80"                     |
 | git_repo_name       | "Foo/Backups.git"        |
 | git_branch          | "master"                 |
- 
+ ```
  Depending on your git server you may not require a password.
  
  ## _Automating the exporter_
