@@ -28,7 +28,7 @@ The most basic requirements for the script to operate are.
 
 ``` text
 |        Setting        |         Value             |
-| :-------------------  | :-----------------------  |
+|  -------------------  |  -----------------------  |
 | unimus_server_address | "http://192.168.0.1:8085" |
 | unimus_api_key        | "your unimus api key"     |
 | backup_type           | "all" or "latest"         |
@@ -47,7 +47,7 @@ In addition to these basic requirements, using git requires some of these additi
 
 ``` text
 |       Setting       |          Value           |
-| :-----------------  | :----------------------  |
+|  -----------------  |  ----------------------  |
 | git_username        | "foo"                    |
 | git_password        | "bar"                    |
 | git_email           | foo@bar.com              |
