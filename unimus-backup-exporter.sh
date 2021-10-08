@@ -174,10 +174,9 @@ function pushToGit(){
 }
 
 
-# We can't pass the variable name in any way. 
+# We can't pass the variable name in any other way. 
 # $1 is the variable
 # $2 is the name
-
 function checkVars(){
 	if [[ -z "$1" ]]; then
 		echoRed "$2 is not set in unimus-backup-exporter.env"
@@ -217,8 +216,10 @@ function main(){
 	# Set script directory and working dir for script
 	script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
 	backup_dir=$script_dir/backups
+
 	# HashTable for all devices
 	declare -A devices
+
 	# Create Backup Folder
 	if ! [ -d "backups" ] ; then
 		mkdir backups
@@ -227,10 +228,12 @@ function main(){
 			exit 2
 		fi
 	fi
+
 	# Creating a log file
 	log=unimus-backup-exporter.log
 	printf "Log File - " >> $log
 	date +"%b-%d-%y %H:%M" >> $log
+
 	# Importing variables
 	importVariables
 	if [[ $(unimusStatusCheck) == "OK" ]]; then
