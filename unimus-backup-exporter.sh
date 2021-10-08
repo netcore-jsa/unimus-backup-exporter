@@ -215,6 +215,7 @@ function importVariables(){
 function main(){
 	# Set script directory and working dir for script
 	script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
+	cd "$script_dir"
 	backup_dir=$script_dir/backups
 
 	# HashTable for all devices
