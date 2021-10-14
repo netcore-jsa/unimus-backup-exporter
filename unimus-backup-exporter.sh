@@ -5,7 +5,7 @@
 
 # $1 is echo message
 function echoGreen(){
-	printf "$1\n" >> $log
+	printf "$(date +'%b-%d-%y %H:%M:%S') $1\n" >> $log
 	local green='\033[0;32m'
 	local reset='\033[0m'
 	echo -e "${green}$1${reset}"; 
@@ -14,7 +14,7 @@ function echoGreen(){
 
 # $1 is echo message
 function echoYellow(){ 
-	printf "$1\n" >> $log
+	printf "$(date +'%b-%d-%y %H:%M:%S') $1\n" >> $log
 	local yellow='\033[1;33m'
 	local reset='\033[0m'
 	echo -e "${yellow}$1${reset}"; 
@@ -23,12 +23,11 @@ function echoYellow(){
 
 # $1 is echo message
 function echoRed(){ 
-	printf "$1\n" >> $log
+	printf "$(date +'%b-%d-%y %H:%M:%S') $1\n" >> $log
 	local red='\033[0;31m'
 	local reset='\033[0m'
 	echo -e "${red}$1${reset}"; 
 }
-
 
 # This function will do a get request 
 # $1 is the api request
@@ -140,6 +139,10 @@ function getLatestBackups(){
 
 function pushToGit(){
 	cd $backup_dir
+			if [ $? -ne 0 ]; then
+				echoRed "Failed to enter backup directory"
+				exit 2
+			fi
 	if ! [ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" ]; then
 		git init 
 		git add . 
@@ -163,12 +166,28 @@ function pushToGit(){
 			echoGreen "Invalid setting for git_server_protocal" 
 			;;
 		esac
-		git push -u orgin $branch
+		if [ $? -ne 0 ]; then
+			echoRed "Failed to add git repo"
+			exit 2
+		fi
+		git push -u orgin $git_branch
+		if [ $? -ne 0 ]; then
+			echoRed "Failed to add branch"
+			exit 2
+		fi
 		git push 
+		if [ $? -ne 0 ]; then
+			echoRed "Failed to push to git"
+			exit 2
+		fi
 	else
 		git add --all 
 		git commit -m "Unimus Git Extractor $(date +'%b-%d-%y %H:%M')"
 		git push 
+		if [ $? -ne 0 ]; then
+			echoRed "Failed to push to git"
+			exit 2
+		fi
 	fi
 	cd $script_dir
 }
