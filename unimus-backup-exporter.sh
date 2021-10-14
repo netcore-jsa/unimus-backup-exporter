@@ -23,7 +23,6 @@ function echoYellow(){
 
 # $1 is echo message
 function echoRed(){ 
-	echo "$log"
 	printf "$(date +'%b-%d-%y %H:%M:%S') $1\n" >> $log
 	local red='\033[0;31m'
 	local reset='\033[0m'
@@ -257,7 +256,7 @@ function main(){
 	importVariables
 	if [ $(unimusStatusCheck) == "OK" ] ; then
 		# Getting All Device Information
-		echoGreen "Getting device sata"
+		echoGreen "Getting device data"
 		getAllDevices
 
 		# Chooses what type of backup we will do
@@ -265,18 +264,20 @@ function main(){
 			latest)
 			echoGreen "Exporting latest backups"
 			getLatestBackups
+			echoGreen "Export successfull"
 			;;
 			all)
 			echoGreen "Exporting all backups"
 			getAllBackups
+			echoGreen "Export successfull"
 			;;
 		esac
 		# If no server protocal is selected we will not push to git
 		# Otherwise We push to Git
 		if [ $export_type == "git" ] ; then
-			echoGreen "Exporting to git"
+			echoGreen "Pushing to git"
  			pushToGit
- 			echoGreen "Exported successful"
+ 			echoGreen "Push successful"
  		fi
 	else
 		if [ -z $status ] ; then
