@@ -163,7 +163,7 @@ function pushToGit(){
 			echoGreen "Invalid setting for git_server_protocal" 
 			;;
 		esac
-		git push -u orgin $branch
+		git push -u orgin $git_branch
 		git push 
 	else
 		git add --all 
