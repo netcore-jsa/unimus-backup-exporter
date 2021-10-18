@@ -294,6 +294,7 @@ function main(){
 			echoRed "Server status: $status"
 		fi
 	fi
+	echoGreen "Script finished"
 }
 
 
