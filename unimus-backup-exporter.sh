@@ -3,6 +3,15 @@
 # This is a Unimus to Git API to export your backups to your Git Repo
 
 
+# Checks github for latest release
+function checkLatestVersion(){
+	lastest_version=$(curl -sL "https://api.github.com/repos/netcore-jsa/unimus-backup-exporter/releases/latest" | jq -r ".tag_name")
+	if [[ $lastest_version > $SCRIPT_VERSION ]]; then
+		echo "$SCRIPT_VERSION"
+		echoYellow "There is a new version of the unimus backup exporter. It is recommended to update."
+	fi
+}
+
 # $1 is echo message
 function echoGreen(){
 	printf "$(date +'%b-%d-%y %H:%M:%S') $1\n" >> $log
@@ -34,7 +43,7 @@ function echoRed(){
 function errorCheck(){
 	if [ $1 -ne 0 ]; then
 		echoRed "$2"
-		exit 2
+		exit "$?"
 	fi
 }
 
@@ -230,14 +239,13 @@ function importVariables(){
 
 
 function main(){
+	SCRIPT_VERSION="v1.0.1"
 	# Set script directory and working dir for script
 	script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
 	cd "$script_dir"
 	backup_dir=$script_dir/backups
-
 	# HashTable for all devices
 	declare -A devices
-
 	# Create Backup Folder
 	if ! [ -d "backups" ] ; then
 		mkdir backups
@@ -246,19 +254,18 @@ function main(){
 			exit 2
 		fi
 	fi
-
 	# Creating a log file
 	log="$script_dir/unimus-backup-exporter.log"
 	printf "Log File - " >> $log
 	date +"%b-%d-%y %H:%M" >> $log
-
+	checkLatestVersion
 	# Importing variables
 	importVariables
-	if [ $(unimusStatusCheck) == "OK" ] ; then
+	status=$(unimusStatusCheck)
+	if [ $status == "OK" ] ; then
 		# Getting All Device Information
 		echoGreen "Getting device data"
 		getAllDevices
-
 		# Chooses what type of backup we will do
 		case $backup_type in
 			latest)
