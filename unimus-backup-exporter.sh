@@ -14,7 +14,7 @@ function checkLatestVersion(){
 
 # $1 is echo message
 function echoGreen(){
-	printf "$(date +'%b-%d-%y %H:%M:%S') $1\n" >> $log
+	printf "$(date +'%F %H:%M:%S') $1\n" >> $log
 	local green='\033[0;32m'
 	local reset='\033[0m'
 	echo -e "${green}$1${reset}"; 
@@ -43,7 +43,7 @@ function echoRed(){
 function errorCheck(){
 	if [ $1 -ne 0 ]; then
 		echoRed "$2"
-		exit "$?"
+		exit "$1"
 	fi
 }
 
@@ -52,6 +52,7 @@ function errorCheck(){
 # $1 is the api request
 function unimusGet(){
 	local get_request=$(curl -s -H "Accept: application/json" -H "Authorization: Bearer $unimus_api_key" "$unimus_server_address/api/v2/$1")
+	errorCheck "$?" "Unable to get data from unimus server!"
 	echo "$get_request"
 }
 
@@ -60,6 +61,7 @@ function unimusGet(){
 function unimusStatusCheck(){
 	local get_status=$(unimusGet "health")
 	local status=$(jq -r '.data.status' <<< $get_status)
+	errorCheck "$?" "Unable to peform unimus Status Check!"
 	echo "$status"
 }
 
@@ -90,6 +92,7 @@ function getAllDevices(){
 	echoGreen "Getting Device Information"
 	for ((page=0; ; page+=1)); do
 		local contents=$(unimusGet "devices?page=$page")
+		errorCheck "$?" "Unable to get device data from unimus!"
 		for((data=0; ; data+=1)); do
 			if ( jq -e ".data[$data] | length == 0" <<< $contents) >/dev/null; then
 				break
@@ -111,6 +114,7 @@ function getAllBackups(){
 	for key in "${!devices[@]}"; do
 		for ((page=0; ; page+=1)); do
 			local contents=$(unimusGet "devices/$key/backups?page=$page")
+			errorCheck "$?" "Unable to get all backups from unimus!"
 			for ((data=0; ; data+=1)); do
 				if ( jq -e ".data[$data] | length == 0" <<< $contents) >/dev/null; then
 					break
@@ -137,6 +141,7 @@ function getLatestBackups(){
 	# Query for latest backups. This will loop through getting every page
 	for ((page=0; ; pagae+=1)); do
 		local contents=$(unimusGet "devices/backups/latest?page=$page")
+		errorCheck "$?" "Unable to get latest backups from unimus!"
 		for ((data=0; ; data+=1)); do
 			# Breaks if looped through all devices
 			if ( jq -e ".data[$data] | length == 0" <<< $contents) >/dev/null; then
@@ -171,21 +176,25 @@ function pushToGit(){
 			ssh-keyscan -H git_server_address >> ~/.ssh/known_hosts
 			if [ -z "$git_password" ]; then
 				git remote add orgin ssh://$git_username@$git_server_address/$git_repo_name
+				errorCheck "$?" "Failed to add git repo"
 			else
 				git remote add orgin ssh://$git_username:$git_password@$git_server_address/$git_repo_name
+				errorCheck "$?" "Failed to add git repo"
 			fi
 			;;
 			http)
-			git remote add orgin http://$git_username:$git_password@$git_server_address:$git_port/$git_repo_name 
+			git remote add orgin http://$git_username:$git_password@$git_server_address:$git_port/$git_repo_name
+			errorCheck "$?" "Failed to add git repo"
 			;;
 			https)
-			git remote add orgin https://$git_username:$git_password@$git_server_address:$git_port/$git_repo_name 
+			git remote add orgin https://$git_username:$git_password@$git_server_address:$git_port/$git_repo_name
+			errorCheck "$?" "Failed to add git repo"
 			;;
 			*)
-			echoGreen "Invalid setting for git_server_protocal" 
+			echoGreen "Invalid setting for git_server_protocal"
+			exit 2
 			;;
 		esac
-		errorCheck "$?" "Failed to add git repo"
 		git push -u orgin $git_branch >> $log
 		errorCheck "$?" "Failed to add branch"
 		git push >> $log
@@ -240,28 +249,33 @@ function importVariables(){
 
 function main(){
 	SCRIPT_VERSION="v1.0.1"
+
 	# Set script directory and working dir for script
 	script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
 	cd "$script_dir"
 	backup_dir=$script_dir/backups
+
 	# HashTable for all devices
 	declare -A devices
+
 	# Create Backup Folder
 	if ! [ -d "backups" ] ; then
 		mkdir backups
-		if [ $? -ne 0 ] ; then
-			echoRed "Failed to create backups folder!"
-			exit 2
-		fi
+		errorCheck "$?" "Failed to create backup folder"
 	fi
+
 	# Creating a log file
 	log="$script_dir/unimus-backup-exporter.log"
 	printf "Log File - " >> $log
 	date +"%b-%d-%y %H:%M" >> $log
+
 	checkLatestVersion
+
 	# Importing variables
 	importVariables
+
 	status=$(unimusStatusCheck)
+	errorCheck "$?" "Status check failed"
 	if [ $status == "OK" ] ; then
 		# Getting All Device Information
 		echoGreen "Getting device data"
@@ -271,12 +285,12 @@ function main(){
 			latest)
 			echoGreen "Exporting latest backups"
 			getLatestBackups
-			echoGreen "Export successfull"
+			echoGreen "Export successful"
 			;;
 			all)
 			echoGreen "Exporting all backups"
 			getAllBackups
-			echoGreen "Export successfull"
+			echoGreen "Export successful"
 			;;
 		esac
 		# If no server protocal is selected we will not push to git
@@ -288,10 +302,10 @@ function main(){
  		fi
 	else
 		if [ -z $status ] ; then
-			echoRed "Unable to connect to server"
+			echoRed "Unable to connect to unimus server"
 			exit 2
 		else
-			echoRed "Server status: $status"
+			echoRed "Unimus server status: $status"
 		fi
 	fi
 	echoGreen "Script finished"
