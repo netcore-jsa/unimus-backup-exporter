@@ -276,10 +276,12 @@ function main(){
 
 	status=$(unimusStatusCheck)
 	errorCheck "$?" "Status check failed"
+
 	if [ $status == "OK" ] ; then
 		# Getting All Device Information
 		echoGreen "Getting device data"
 		getAllDevices
+
 		# Chooses what type of backup we will do
 		case $backup_type in
 			latest)
@@ -293,8 +295,8 @@ function main(){
 			echoGreen "Export successful"
 			;;
 		esac
-		# If no server protocal is selected we will not push to git
-		# Otherwise We push to Git
+
+		#Exporting to git
 		if [ $export_type == "git" ] ; then
 			echoGreen "Pushing to git"
  			pushToGit
