@@ -17,25 +17,25 @@ function echoGreen(){
 	printf "$(date +'%F %H:%M:%S') $1\n" >> $log
 	local green='\033[0;32m'
 	local reset='\033[0m'
-	echo -e "${green}$1${reset}"; 
+	echo -e "${green}$1${reset}";
 }
 
 
 # $1 is echo message
-function echoYellow(){ 
+function echoYellow(){
 	printf "WARNING: $(date +'%F %H:%M:%S') $1\n" >> $log
 	local yellow='\033[1;33m'
 	local reset='\033[0m'
-	echo -e "WARNING: ${yellow}$1${reset}"; 
+	echo -e "WARNING: ${yellow}$1${reset}";
 }
 
 
 # $1 is echo message
-function echoRed(){ 
+function echoRed(){
 	printf "ERROR: $(date +'%F %H:%M:%S') $1\n" >> $log
 	local red='\033[0;31m'
 	local reset='\033[0m'
-	echo -e "ERROR: ${red}$1${reset}"; 
+	echo -e "ERROR: ${red}$1${reset}";
 }
 
 # $1 is $? from the command being checked
@@ -48,7 +48,7 @@ function errorCheck(){
 }
 
 
-# This function will do a get request 
+# This function will do a get request
 # $1 is the api request
 function unimusGet(){
 	local get_request=$(curl -s -H "Accept: application/json" -H "Authorization: Bearer $unimus_api_key" "$unimus_server_address/api/v2/$1")
@@ -104,7 +104,7 @@ function getAllDevices(){
 		done
 		if ( jq -e '.data | length == 0' <<< $contents ) >/dev/null; then
 			break
-		fi 
+		fi
 	done
 }
 
@@ -128,7 +128,7 @@ function getAllBackups(){
 			done
 		if [ $(jq -e '.data | length == 0' <<< $contents) ] >/dev/null; then
 				break
-		fi 
+		fi
 		done
 	done
 	echoGreen "$backupCount backups exported"
@@ -158,7 +158,7 @@ function getLatestBackups(){
 		# Breaks if empty page.
 		if [ $(jq -e '.data | length == 0' <<< $contents) ] >/dev/null; then
 			break
-		fi 
+		fi
 	done
 	echoGreen "$backupCount backups exported"
 }
@@ -168,10 +168,10 @@ function pushToGit(){
 	cd $backup_dir
 	errorCheck "$?" "Failed to enter backup directory"
 	if ! [ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" ]; then
-		git init 
-		git add . 
+		git init
+		git add .
 		git commit -m "Initial Commit"
-		case $git_server_protocal in 
+		case $git_server_protocal in
 			ssh)
 			ssh-keyscan -H git_server_address >> ~/.ssh/known_hosts
 			if [ -z "$git_password" ]; then
@@ -200,9 +200,9 @@ function pushToGit(){
 		git push >> $log
 		errorCheck "$?" "Failed to push to git"
 	else
-		git add --all 
+		git add --all
 		git commit -m "Unimus Git Extractor $(date +'%b-%d-%y %H:%M')"
-		git push 
+		git push
 		errorCheck "$?" "Failed to push to git"
 	fi
 	cd $script_dir
