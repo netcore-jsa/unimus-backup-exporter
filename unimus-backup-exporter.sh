@@ -23,19 +23,19 @@ function echoGreen(){
 
 # $1 is echo message
 function echoYellow(){ 
-	printf "$(date +'%b-%d-%y %H:%M:%S') $1\n" >> $log
+	printf "WARNING: $(date +'%F %H:%M:%S') $1\n" >> $log
 	local yellow='\033[1;33m'
 	local reset='\033[0m'
-	echo -e "${yellow}$1${reset}"; 
+	echo -e "WARNING: ${yellow}$1${reset}"; 
 }
 
 
 # $1 is echo message
 function echoRed(){ 
-	printf "$(date +'%b-%d-%y %H:%M:%S') $1\n" >> $log
+	printf "ERROR: $(date +'%F %H:%M:%S') $1\n" >> $log
 	local red='\033[0;31m'
 	local reset='\033[0m'
-	echo -e "${red}$1${reset}"; 
+	echo -e "ERROR: ${red}$1${reset}"; 
 }
 
 # $1 is $? from the command being checked
@@ -191,7 +191,7 @@ function pushToGit(){
 			errorCheck "$?" "Failed to add git repo"
 			;;
 			*)
-			echoGreen "Invalid setting for git_server_protocal"
+			echoRed "Invalid setting for git_server_protocal"
 			exit 2
 			;;
 		esac
@@ -267,7 +267,7 @@ function main(){
 	# Creating a log file
 	log="$script_dir/unimus-backup-exporter.log"
 	printf "Log File - " >> $log
-	date +"%b-%d-%y %H:%M" >> $log
+	date +"%F %H:%M:%S" >> $log
 
 	checkLatestVersion
 
