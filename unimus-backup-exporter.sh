@@ -97,10 +97,9 @@ function getAllDevices(){
 			if ( jq -e ".data[$data] | length == 0" <<< $contents) >/dev/null; then
 				break
 			fi
-			if $(echo "$contents" | ${devices[(jq -e " .data[$data]")]}) >/dev/null; then
-				read -a value < <(echo $(jq -e ".data[$data] | .id, .address" <<< $contents))
-				devices[${value[0]}]=$(echo ${value[1]} | tr -d '"')
-			fi
+			local id=$(jq -e -r ".data[$data].id" <<< $contents)
+			local address=$(jq -e -r ".data[$data].address" <<< $contents)
+			devices[$id]=$address
 		done
 		if ( jq -e '.data | length == 0' <<< $contents ) >/dev/null; then
 			break
