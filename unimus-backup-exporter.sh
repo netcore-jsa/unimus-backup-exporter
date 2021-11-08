@@ -8,7 +8,7 @@ function checkLatestVersion(){
 	lastest_version=$(curl -sL "https://api.github.com/repos/netcore-jsa/unimus-backup-exporter/releases/latest" | jq -r ".tag_name")
 	lastest_version=${lastest_version#"v"}
 
-    local IFS=.
+    local IFS='.'
     local i ver1=($lastest_version) ver2=($SCRIPT_VERSION)
 	if [ $ver1 == $ver2 ]; then
         return 0
