@@ -3,33 +3,6 @@
 # This is a Unimus to Git API to export your backups to your Git Repo
 
 
-# Checks github for latest release
-function checkLatestVersion(){
-	lastest_version=$(curl -sL 'https://api.github.com/repos/netcore-jsa/unimus-backup-exporter/releases/latest' | jq -r '.tag_name')
-	lastest_version=${lastest_version#'v'}
-	local IFS='.'
-	local i ver1=($lastest_version) ver2=($SCRIPT_VERSION)
-	if [ $ver1 == $ver2 ]; then
-		return 0
-	fi
-	# fill empty fields in ver1 with zeros
-	for ((i=${#ver1[@]}; i<${#ver2[@]}; i++)); do
-		ver1[i]=0
-	done
-	for ((i=0; i<${#ver1[@]}; i++)); do
-		if [ -z ${ver2[i]} ]; then
-			# fill empty fields in ver2 with zeros
-			ver2[i]=0
-		fi
-		if ((10#${ver1[i]} > 10#${ver2[i]})); then
-			echoYellow 'You are using an older version of this script. It is recommended to upgrade.'
-			return 1
-		fi
-	done
-	return 0
-}
-
-
 # $1 is echo message
 function echoGreen(){
 	printf "$(date +'%F %H:%M:%S') $1\n" >> $log
@@ -63,6 +36,37 @@ function errorCheck(){
 		echoRed "$2"
 		exit "$1"
 	fi
+}
+
+
+# Checks github for latest release
+function checkLatestVersion(){
+	lastest_version=$(curl -sL 'https://api.github.com/repos/netcore-jsa/unimus-backup-exporter/releases/latest' | jq -r '.tag_name')
+	if [ $? -ne 0 ]; then
+		echoYellow "Failed to check for updated script"
+		return 2;
+	fi
+	lastest_version=${lastest_version#'v'}
+	local IFS='.'
+	local i ver1=($lastest_version) ver2=($SCRIPT_VERSION)
+	if [ $ver1 == $ver2 ]; then
+		return 0
+	fi
+	# fill empty fields in ver1 with zeros
+	for ((i=${#ver1[@]}; i<${#ver2[@]}; i++)); do
+		ver1[i]=0
+	done
+	for ((i=0; i<${#ver1[@]}; i++)); do
+		if [ -z ${ver2[i]} ]; then
+			# fill empty fields in ver2 with zeros
+			ver2[i]=0
+		fi
+		if ((10#${ver1[i]} > 10#${ver2[i]})); then
+			echoYellow 'You are using an older version of this script. It is recommended to upgrade.'
+			return 1
+		fi
+	done
+	return 0
 }
 
 
