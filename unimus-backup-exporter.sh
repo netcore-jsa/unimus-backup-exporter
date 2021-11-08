@@ -23,7 +23,7 @@ function checkLatestVersion(){
 		fi
 		if ((10#${ver1[i]} > 10#${ver2[i]})); then
 			echoYellow 'You are using an older version of this script. It is recommended to upgrade.'
-		return 1
+			return 1
 		fi
 	done
 	return 0
@@ -70,7 +70,7 @@ function errorCheck(){
 # $1 is the api request
 function unimusGet(){
 	local get_request=$(curl -s -H 'Accept: application/json' -H "Authorization: Bearer $unimus_api_key" "$unimus_server_address/api/v2/$1")
-	errorCheck "$?" 'Unable to get data from unimus server!'
+	errorCheck "$?" 'Unable to get data from unimus server'
 	echo "$get_request"
 }
 
@@ -79,7 +79,7 @@ function unimusGet(){
 function unimusStatusCheck(){
 	local get_status=$(unimusGet 'health')
 	local status=$(jq -r '.data.status' <<< $get_status)
-	errorCheck "$?" 'Unable to peform unimus Status Check!'
+	errorCheck "$?" 'Unable to peform unimus Status Check'
 	echo "$status"
 }
 
@@ -98,7 +98,7 @@ function saveBackup(){
 	fi
 	if ! [ -d "$backup_dir/$address - $1" ]; then
 		mkdir "$backup_dir/$address - $1"
-		errorCheck "$?" 'Failed to create device folder!'
+		errorCheck "$?" 'Failed to create device folder'
 	fi
 	if ! [ -e "$backup_dir/$address - $1/Backup $address $2 $1.$type" ]; then
 		base64 -d <<< $3 > "$backup_dir/$address - $1/Backup $address $2 $1.$type"
@@ -110,7 +110,7 @@ function getAllDevices(){
 	echoGreen 'Getting Device Information'
 	for ((page=0; ; page+=1)); do
 		local contents=$(unimusGet "devices?page=$page")
-		errorCheck "$?" 'Unable to get device data from unimus!'
+		errorCheck "$?" 'Unable to get device data from unimus'
 		for((data=0; ; data+=1)); do
 			if ( jq -e ".data[$data] | length == 0" <<< $contents) >/dev/null; then
 				break
@@ -131,7 +131,7 @@ function getAllBackups(){
 	for key in "${!devices[@]}"; do
 		for ((page=0; ; page+=1)); do
 			local contents=$(unimusGet "devices/$key/backups?page=$page")
-			errorCheck "$?" 'Unable to get all backups from unimus!'
+			errorCheck "$?" 'Unable to get all backups from unimus'
 			for ((data=0; ; data+=1)); do
 				if ( jq -e ".data[$data] | length == 0" <<< $contents) >/dev/null; then
 					break
@@ -158,7 +158,7 @@ function getLatestBackups(){
 	# Query for latest backups. This will loop through getting every page
 	for ((page=0; ; pagae+=1)); do
 		local contents=$(unimusGet "devices/backups/latest?page=$page")
-		errorCheck "$?" 'Unable to get latest backups from unimus!'
+		errorCheck "$?" 'Unable to get latest backups from unimus'
 		for ((data=0; ; data+=1)); do
 			# Breaks if looped through all devices
 			if ( jq -e ".data[$data] | length == 0" <<< $contents) >/dev/null; then
@@ -313,7 +313,7 @@ function main(){
 			;;
 		esac
 
-		#Exporting to git
+		# Exporting to git
 		if [ $export_type == 'git' ] ; then
 			echoGreen 'Pushing to git'
 			pushToGit
