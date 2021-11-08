@@ -8,7 +8,7 @@ function echoGreen(){
 	printf "$(date +'%F %H:%M:%S') $1\n" >> $log
 	local green='\033[0;32m'
 	local reset='\033[0m'
-	echo -e "${green}$1${reset}";
+	echo -e "${green}$1${reset}"
 }
 
 
@@ -17,7 +17,7 @@ function echoYellow(){
 	printf "WARNING: $(date +'%F %H:%M:%S') $1\n" >> $log
 	local yellow='\033[1;33m'
 	local reset='\033[0m'
-	echo -e "WARNING: ${yellow}$1${reset}";
+	echo -e "WARNING: ${yellow}$1${reset}"
 }
 
 
@@ -26,7 +26,7 @@ function echoRed(){
 	printf "ERROR: $(date +'%F %H:%M:%S') $1\n" >> $log
 	local red='\033[0;31m'
 	local reset='\033[0m'
-	echo -e "ERROR: ${red}$1${reset}";
+	echo -e "ERROR: ${red}$1${reset}"
 }
 
 # $1 is $? from the command being checked
@@ -44,7 +44,7 @@ function checkLatestVersion(){
 	lastest_version=$(curl -sL 'https://api.github.com/repos/netcore-jsa/unimus-backup-exporter/releases/latest' | jq -r '.tag_name')
 	if [ $? -ne 0 ]; then
 		echoYellow "Failed to check for updated script"
-		return 2;
+		return 2
 	fi
 	lastest_version=${lastest_version#'v'}
 	local IFS='.'
@@ -280,7 +280,7 @@ function main(){
 	declare -A devices
 
 	# Create Backup Folder
-	if ! [ -d 'backups' ] ; then
+	if ! [ -d 'backups' ];then
 		mkdir backups
 		errorCheck "$?" 'Failed to create backup folder'
 	fi
@@ -298,7 +298,7 @@ function main(){
 	status=$(unimusStatusCheck)
 	errorCheck "$?" 'Status check failed'
 
-	if [ $status == 'OK' ] ; then
+	if [ $status == 'OK' ]; then
 		# Getting All Device Information
 		echoGreen 'Getting device data'
 		getAllDevices
@@ -318,13 +318,13 @@ function main(){
 		esac
 
 		# Exporting to git
-		if [ $export_type == 'git' ] ; then
+		if [ $export_type == 'git' ]; then
 			echoGreen 'Pushing to git'
 			pushToGit
 			echoGreen 'Push successful'
 		fi
 	else
-		if [ -z $status ] ; then
+		if [ -z $status ]; then
 			echoRed 'Unable to connect to unimus server'
 			exit 2
 		else
