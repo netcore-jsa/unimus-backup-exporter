@@ -29,6 +29,7 @@ function echoRed(){
 	echo -e "ERROR: ${red}$1${reset}"
 }
 
+
 # $1 is $? from the command being checked
 # #2 is the error message
 function errorCheck(){
@@ -280,7 +281,7 @@ function main(){
 	declare -A devices
 
 	# Create Backup Folder
-	if ! [ -d 'backups' ];then
+	if ! [ -d 'backups' ]; then
 		mkdir backups
 		errorCheck "$?" 'Failed to create backup folder'
 	fi
