@@ -10,7 +10,7 @@ function checkLatestVersion(){
 
     local IFS=.
     local i ver1=($lastest_version) ver2=($SCRIPT_VERSION)
-	if [[ $ver1	 == $ver2 ]]; then
+	if [ $ver1 == $ver2 ]; then
         return 0
     fi
     # fill empty fields in ver1 with zeros
@@ -18,14 +18,13 @@ function checkLatestVersion(){
         ver1[i]=0
     done
     for ((i=0; i<${#ver1[@]}; i++)); do
-        if [[ -z ${ver2[i]} ]]; then
+        if [ -z ${ver2[i]} ]; then
             # fill empty fields in ver2 with zeros
             ver2[i]=0
         fi
         if ((10#${ver1[i]} > 10#${ver2[i]})); then
         	echoYellow "You are using an older version of this script. It is recommended to upgrade."
             return 1
-            e
         fi
     done
     return 0
