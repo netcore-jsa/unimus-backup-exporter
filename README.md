@@ -1,6 +1,6 @@
 # Unimus Backup Exporter 
 
-The Unimus backup exporter is a bash script that exports backups from your Unimus server, stores backups locally, and pushes them to a git repo if desired.
+The Unimus backup exporter is a bash script that exports backups from your [Unimus](https://unimus.net) server, stores backups locally, and pushes them to a git repo if desired.
 
 ## _Requirements_
 
