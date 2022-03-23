@@ -1,4 +1,4 @@
-# !/usr/bin/env bash
+#!/usr/bin/env bash
 
 # This is a Unimus to Git API to export your backups to your Git Repo
 
