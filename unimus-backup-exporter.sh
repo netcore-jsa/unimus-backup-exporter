@@ -161,7 +161,7 @@ function getAllBackups(){
 function getLatestBackups(){
 	local backupCount
 	# Query for latest backups. This will loop through getting every page
-	for ((page=0; ; pagae+=1)); do
+	for ((page=0; ; page+=1)); do
 		local contents=$(unimusGet "devices/backups/latest?page=$page")
 		errorCheck "$?" 'Unable to get latest backups from unimus'
 		for ((data=0; ; data+=1)); do
