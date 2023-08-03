@@ -74,7 +74,7 @@ function checkLatestVersion(){
 # This function will do a get request
 # $1 is the api request
 function unimusGet(){
-	local get_request=$(curl -s -H 'Accept: application/json' -H "Authorization: Bearer $unimus_api_key" "$unimus_server_address/api/v2/$1")
+	local get_request=$(curl $insecure -s -H 'Accept: application/json' -H "Authorization: Bearer $unimus_api_key" "$unimus_server_address/api/v2/$1")
 	errorCheck "$?" 'Unable to get data from unimus server'
 	echo "$get_request"
 }
@@ -99,7 +99,7 @@ function saveBackup(){
 	if [ $4 == 'TEXT' ]; then
 		local type='txt'
 	elif [ $4 == 'BINARY' ]; then
-		local type ='bin'
+		local type='bin'
 	fi
 	if ! [ -d "$backup_dir/$address - $1" ]; then
 		mkdir "$backup_dir/$address - $1"
@@ -193,7 +193,7 @@ function pushToGit(){
 		git init
 		git add .
 		git commit -m 'Initial Commit'
-		case $git_server_protocal in
+		case $git_server_protocol in
 			ssh)
 			ssh-keyscan -H git_server_address >> ~/.ssh/known_hosts
 			if [ -z "$git_password" ]; then
@@ -213,7 +213,7 @@ function pushToGit(){
 			errorCheck "$?" 'Failed to add git repo'
 			;;
 			*)
-			echoRed 'Invalid setting for git_server_protocal'
+			echoRed 'Invalid setting for git_server_protocol'
 			exit 2
 			;;
 		esac
@@ -253,14 +253,14 @@ function importVariables(){
 	if [ "$export_type" == 'git' ]; then
 		checkVars "$git_username" 'git_username'
 		# Only Checking for password for http. SSH may or may not require a password
-		if [[ "$git_server_protocal" == 'http' || "$git_server_protocal" == 'https' ]]; then
+		if [[ "$git_server_protocol" == 'http' || "$git_server_protocol" == 'https' ]]; then
 			if [ -z "$git_password" ]; then
 				echoRed 'Please Provide a git password'
 				exit 2
 			fi
 		fi
 		checkVars "$git_email" 'git_email'
-		checkVars "$git_server_protocal" 'git_server_protocal'
+		checkVars "$git_server_protocol" 'git_server_protocol'
 		checkVars "$git_server_address" 'git_server_address'
 		checkVars "$git_port" 'git_port'
 		checkVars "$git_repo_name" 'git_repo_name'
