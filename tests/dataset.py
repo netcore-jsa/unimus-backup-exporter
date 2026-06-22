@@ -4,9 +4,9 @@ Both the mock Unimus server (`mock_server.py`) and the expected-tree builder
 (`build_expected.py`) import this module, so the fixtures served over HTTP and the
 expected output on disk can never drift apart.
 
-This file is language-agnostic data + the file-naming contract. The PowerShell
-port must reproduce the same expected trees, so treat `date_str()` / `rel_paths()`
-below as the spec the port has to match byte-for-byte.
+This file is language-agnostic data + the file-naming contract. Every exporter
+implementation must reproduce the same expected trees, so treat `date_str()` /
+`rel_path()` below as the spec they match byte-for-byte.
 """
 
 from datetime import datetime, timezone

@@ -1,7 +1,7 @@
 """Black-box driver shared by every exporter implementation.
 
-The only things that change between the Bash script and the future PowerShell
-port are two environment variables:
+The only things that change between the Bash script and the PowerShell
+version are two environment variables:
 
     EXPORTER_FILES  space-separated files to copy into the temp run dir
                     (default: the Bash script)
@@ -9,7 +9,7 @@ port are two environment variables:
                     (default: ./unimus-backup-exporter.sh)
 
 Everything else -- the mock server, the dataset, the expected trees, the temp
-.env, the tree comparison -- is reused unchanged. To test the PowerShell port:
+.env, the tree comparison -- is reused unchanged. To test the PowerShell version:
 
     EXPORTER_FILES="unimus-backup-exporter.ps1" \
     EXPORTER_CMD="pwsh ./unimus-backup-exporter.ps1" \

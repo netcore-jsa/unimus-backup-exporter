@@ -1,6 +1,6 @@
-# Pester unit tests for the PowerShell port (per-language layer, mirrors the
-# bats units). The shared cross-port coverage lives in the Python e2e + git
-# harness, run against the port via EXPORTER_CMD="pwsh ./unimus-backup-exporter.ps1".
+# Pester unit tests for the PowerShell version (per-language layer, mirrors the
+# bats units). The shared cross-implementation coverage lives in the Python e2e + git
+# harness, run against it via EXPORTER_CMD="pwsh ./unimus-backup-exporter.ps1".
 #
 # Run:  pwsh -c 'Invoke-Pester tests/unit/pwsh'
 

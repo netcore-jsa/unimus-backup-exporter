@@ -4,8 +4,8 @@ Runs the exporter in `export_type=git` mode with the fake `git`/`ssh-keyscan`
 from tests/fakebin on PATH, so every git interaction is recorded to a trace file
 instead of touching a real repo or remote. Reuses run_exporter() from
 e2e_support, so the same EXPORTER_FILES/EXPORTER_CMD knob applies -- this harness
-is shared across implementations (the Bash script today, the PowerShell port
-later, provided the port shells out to the `git` CLI).
+is shared across implementations (the Bash script and the PowerShell version,
+provided each shells out to the `git` CLI).
 """
 
 import os

@@ -1,8 +1,8 @@
 """A minimal mock Unimus REST API v2 server, driven by `dataset.py`.
 
 Language-agnostic: it serves canned responses over HTTP so ANY implementation
-of the exporter (this Bash script today, the PowerShell port later) can be run
-black-box against it. Nothing here knows or cares which port is under test.
+of the exporter (the Bash script or the PowerShell version) can be run black-box
+against it. Nothing here knows or cares which implementation is under test.
 
 Endpoints implemented (base path /api/v2, Bearer auth). Shapes verified against
 the Unimus API v2 wiki; results are wrapped in a `paginator` object that the
@@ -12,7 +12,7 @@ script ignores (it terminates on an empty `data` array):
   GET /devices/{id}/backups?page=N  -> {"data": [{id, validSince, validUntil, type, bytes}, ...], paginator}
   GET /devices/backups/latest?page=N-> {"data": [{deviceId, address, backup:{...}}, ...], paginator}
 
-Run standalone (handy for manually testing the PowerShell port):
+Run standalone (handy for manually testing the PowerShell version):
     python3 tests/mock_server.py --port 8085
 then point unimus_server_address at http://127.0.0.1:8085 and
 unimus_api_key at the value of dataset.API_KEY.

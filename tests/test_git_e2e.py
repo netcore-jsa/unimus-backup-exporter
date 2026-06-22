@@ -3,7 +3,7 @@
 Run the exporter in `export_type=git` mode against the mock Unimus server, with a
 fake `git`/`ssh-keyscan` on PATH that records every invocation. Assertions are
 made on that command trace, so no real repo or remote is needed -- and because
-the fakes intercept the `git` CLI, the same harness will test the PowerShell port
+the fakes intercept the `git` CLI, the same harness also tests the PowerShell version
 (which must shell out to `git`).
 
 Run:  python3 -m unittest discover -s tests

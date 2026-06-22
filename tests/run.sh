@@ -3,7 +3,7 @@
 # Runs every stage even if an earlier one fails, then reports a summary.
 #
 # Usage:  tests/run.sh
-# Override the implementation under test (e.g. the future PowerShell port):
+# Override the implementation under test (e.g. the PowerShell version):
 #   EXPORTER_FILES="unimus-backup-exporter.ps1" \
 #   EXPORTER_CMD="pwsh ./unimus-backup-exporter.ps1" tests/run.sh
 
@@ -36,7 +36,7 @@ else
   echo "bats not installed - SKIPPED (https://github.com/bats-core/bats-core)"
 fi
 
-stage "powershell e2e (same suite, against the .ps1 port)"
+stage "powershell e2e (same suite, against the .ps1 version)"
 if command -v pwsh >/dev/null; then
   ( cd "$tests_dir" && EXPORTER_FILES="unimus-backup-exporter.ps1" \
       EXPORTER_CMD="pwsh ./unimus-backup-exporter.ps1" \

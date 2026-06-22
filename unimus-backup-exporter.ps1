@@ -1,16 +1,16 @@
 <#
 .SYNOPSIS
-  PowerShell port of unimus-backup-exporter.sh. Pulls device backups from a
-  Unimus server via its REST API, decodes them to disk, and optionally commits
-  and pushes them to a Git repo.
+  Fully-featured PowerShell alternative to unimus-backup-exporter.sh: pulls
+  device backups from a Unimus server via its REST API, decodes them to disk,
+  and optionally commits and pushes them to a Git repo.
 
-  Feature-compatible with the Bash version: it reads the same
+  Interchangeable with the Bash version - it reads the same
   unimus-backup-exporter.env, writes the same backups/<address> - <id>/Backup ...
-  file tree, and drives git the same way. Timestamps, git, and ssh-keyscan are
-  shelled out to the same external commands so output is byte-identical.
+  tree, and drives git the same way. Timestamps, git, and ssh-keyscan are shelled
+  out to the same external commands, so the output is byte-identical.
 
-  Targets pwsh on Linux/macOS (the backup filenames contain ':' from the time
-  format, which is illegal on Windows).
+  Targets PowerShell 7+ on Linux/macOS (backup filenames contain ':' from the
+  time format, which is illegal on Windows).
 #>
 
 # --- output helpers -------------------------------------------------------
@@ -35,7 +35,7 @@ function Write-EchoRed([string]$message) {
 	Write-Host "ERROR: $message" -ForegroundColor Red
 }
 
-# $1 is the exit code of the command being checked, $2 the error message.
+# Abort with $code and the given message when $code is non-zero.
 function Invoke-ErrorCheck([int]$code, [string]$message) {
 	if ($code -ne 0) {
 		Write-EchoRed $message
@@ -65,7 +65,7 @@ function Test-LatestVersion {
 
 # --- Unimus API -----------------------------------------------------------
 
-# $1 is the api request path. Returns the parsed JSON object.
+# GET api/v2/<path>, returning the parsed JSON.
 function Invoke-UnimusGet([string]$path) {
 	$params = @{
 		Uri                = "$unimus_server_address/api/v2/$path"
@@ -88,12 +88,11 @@ function Get-UnimusStatus {
 
 # --- backup writing -------------------------------------------------------
 
-# Mirror `date "+%F-%T-%Z" -d "@<epoch>"` exactly by shelling out to date.
+# Shell out to date so the timestamp matches `date "+%F-%T-%Z" -d "@<epoch>"`.
 function Format-BackupDate($epoch) {
 	return (& date "+%F-%T-%Z" -d "@$epoch")
 }
 
-# $1 device id, $2 date string, $3 base64 payload, $4 backup type.
 function Save-Backup($id, $date, $b64, $type) {
 	$address = $devices[[string]$id]
 	$ext = ''
@@ -174,6 +173,7 @@ function Push-ToGit {
 		switch ($git_server_protocol) {
 			'ssh' {
 				& ssh-keyscan -H $git_server_address *>> "$env:HOME/.ssh/known_hosts"
+				# SSH may or may not require a password.
 				if ([string]::IsNullOrEmpty($git_password)) {
 					& git remote add origin "ssh://${git_username}@${git_server_address}/${git_repo_name}"
 				} else {
@@ -209,7 +209,7 @@ function Push-ToGit {
 
 # --- config ---------------------------------------------------------------
 
-# $1 is the value, $2 the variable name.
+# Abort if a required variable is empty.
 function Test-Var($value, $name) {
 	if ([string]::IsNullOrEmpty($value)) {
 		Write-EchoRed "$name is not set in unimus-backup-exporter.env"
@@ -240,7 +240,7 @@ function Import-Variables {
 	Test-Var $export_type 'export_type'
 	if ($export_type -eq 'git') {
 		Test-Var $git_username 'git_username'
-		# Only checking for password for http. SSH may or may not require a password.
+		# A password is only required for http/https remotes.
 		if ($git_server_protocol -eq 'http' -or $git_server_protocol -eq 'https') {
 			if ([string]::IsNullOrEmpty($git_password)) {
 				Write-EchoRed 'Please Provide a git password'
@@ -264,8 +264,6 @@ function Invoke-Main {
 	$script:script_dir = $PSScriptRoot
 	Set-Location -LiteralPath $script_dir
 	$script:backup_dir = "$script_dir/backups"
-
-	# Hashtable of device id -> address.
 	$script:devices = @{}
 
 	if (-not [IO.Directory]::Exists($backup_dir)) {
@@ -276,7 +274,6 @@ function Invoke-Main {
 	[IO.File]::AppendAllText($log, "Log File - $((Get-Date).ToString('yyyy-MM-dd HH:mm:ss'))`n")
 
 	Test-LatestVersion
-
 	Import-Variables
 
 	$status = Get-UnimusStatus
