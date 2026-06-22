@@ -1,0 +1,3 @@
+hostname router1
+interface eth0
+ip 10.0.0.1
