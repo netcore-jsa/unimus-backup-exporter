@@ -61,19 +61,28 @@ def address_of(device_id):
 
 
 def date_str(epoch):
-    """Reproduce `date "+%F-%T-%Z" -d "@<epoch>"` under TZ=UTC."""
+    """Bash format: `date "+%F-%T-%Z" -d "@<epoch>"` under TZ=UTC (contains ':')."""
     return datetime.fromtimestamp(epoch, tz=timezone.utc).strftime("%Y-%m-%d-%H:%M:%S-UTC")
+
+
+def date_str_pwsh(epoch):
+    """PowerShell format: UTC, ':'-free so the filename is valid on Windows."""
+    return datetime.fromtimestamp(epoch, tz=timezone.utc).strftime("%Y-%m-%d-%H-%M-%S-UTC")
 
 
 def ext_of(btype):
     return "txt" if btype == "TEXT" else "bin"
 
 
-def rel_path(device_id, backup):
-    """(dir, filename) relative to the backups/ root, matching saveBackup()."""
+def rel_path(device_id, backup, date_fmt=date_str):
+    """(dir, filename) relative to the backups/ root, matching saveBackup().
+
+    date_fmt selects the timestamp format: date_str (Bash) or date_str_pwsh
+    (PowerShell), which produce parallel but distinct expected trees.
+    """
     address = address_of(device_id)
     folder = f"{address} - {device_id}"
-    name = f"Backup {address} {date_str(backup['validSince'])} {device_id}.{ext_of(backup['type'])}"
+    name = f"Backup {address} {date_fmt(backup['validSince'])} {device_id}.{ext_of(backup['type'])}"
     return folder, name
 
 

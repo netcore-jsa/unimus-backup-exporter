@@ -46,6 +46,7 @@ jobs:
         env:
           EXPORTER_FILES: unimus-backup-exporter.ps1
           EXPORTER_CMD: pwsh ./unimus-backup-exporter.ps1
+          EXPECTED_DIR: expected_pwsh
         run: python3 -m unittest discover -s tests -p 'test_*.py' -v
 
   pester:

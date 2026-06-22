@@ -4,9 +4,10 @@ Two layers:
 
 - **Shared black-box e2e** (`test_e2e.py`, Python stdlib only) - runs an exporter
   against a mock Unimus server and diffs the produced `backups/` tree against a
-  checked-in **expected** tree. This layer is **implementation-agnostic**: the
-  same fixtures, mock server, and expected trees test both the Bash and the
-  PowerShell version. This is the reusable part.
+  checked-in **expected** tree. The fixtures and mock server are shared by both
+  versions; the only per-version difference is the expected tree (their filename
+  timestamps differ - see Caveats), selected via the `EXPECTED_DIR` env var. This
+  is the reusable part.
 - **Per-language unit tests** - bats for Bash (`unit/bash/`), Pester for
   PowerShell (`unit/pwsh/`). These exercise individual functions and are not
   shared.
@@ -15,8 +16,9 @@ Two layers:
 tests/
   dataset.py        # SINGLE SOURCE OF TRUTH: devices, backups, file-naming contract
   mock_server.py    # mock Unimus REST API v2, driven by dataset.py
-  build_expected.py # renders expected/ from dataset.py
-  expected/         # expected output trees (the cross-implementation contract)
+  build_expected.py # renders expected/ and expected_pwsh/ from dataset.py
+  expected/         # expected trees for the Bash version (':' in timestamps)
+  expected_pwsh/    # expected trees for the PowerShell version (':'-free UTC)
   e2e_support.py    # copies impl into a temp dir, runs it, diffs the tree
   test_e2e.py       # shared e2e tests (filesystem export)
   git_support.py    # git-mode driver: fake git on PATH + trace parsing
@@ -53,20 +55,21 @@ env vars (see `e2e_support.py`); nothing else changes:
 ```bash
 EXPORTER_FILES="unimus-backup-exporter.ps1" \
 EXPORTER_CMD="pwsh ./unimus-backup-exporter.ps1" \
+EXPECTED_DIR="expected_pwsh" \
 python3 -m unittest discover -s tests -v
 ```
 
-This runs every e2e and git-path test against it and confirms it produces
-**byte-identical** output (the `expected/` trees) and **identical** git command
-traces. `EXPORTER_FILES` is copied into a temp run dir; `EXPORTER_CMD` is run
-there with `cwd` = that dir and `TZ=UTC`. The config is written as
-`unimus-backup-exporter.env` (the name both scripts read) and output is expected
-under `./backups/`. The contract an implementation must meet:
+This runs every e2e and git-path test against it and confirms it produces its
+expected output (the `expected_pwsh/` trees) and **identical** git command traces.
+`EXPECTED_DIR` selects the expected tree; `EXPORTER_FILES` is copied into a temp
+run dir; `EXPORTER_CMD` is run there with `cwd` = that dir and `TZ=UTC`. The config
+is written as `unimus-backup-exporter.env` (the name both scripts read) and output
+is expected under `./backups/`. The contract an implementation must meet:
 
 1. read config from `unimus-backup-exporter.env` in its own directory,
 2. write to `./backups/`,
-3. produce the **exact** paths in `expected/` - see the file-naming contract in
-   `dataset.py` (`date_str` / `rel_path`),
+3. produce the **exact** paths in its expected tree - see the file-naming contract
+   in `dataset.py` (`date_str` / `date_str_pwsh` / `rel_path`),
 4. shell out to `git`/`ssh-keyscan` so the fake-git harness intercepts them.
 
 The PowerShell unit tests are Pester, in `unit/pwsh/`:
@@ -106,11 +109,14 @@ would need a `.cmd`/`.ps1` shim, but the driver and assertions stay shared.
 
 ## Caveats
 
-- **`TZ=UTC` is mandatory.** Backup filenames embed `date "+%F-%T-%Z"`; the tests
-  pin `TZ=UTC` so they are deterministic. Both versions must format identically.
-- **Filenames contain `:` (from `%T`).** Fine on Linux; **illegal on Windows.**
-  Running on Windows would need a different time format, making the expected trees
-  OS-specific - decide this if Windows support is needed.
+- **`TZ=UTC` is mandatory for the Bash version.** Its filenames embed
+  `date "+%F-%T-%Z"` (local time); the tests pin `TZ=UTC` so they are
+  deterministic. The PowerShell version always uses UTC, so it is unaffected.
+- **The two versions' filenames differ, by design.** The Bash version writes a
+  local-time timestamp containing `:` (e.g. `…00:00:00-UTC`), valid on Linux but
+  not Windows. The PowerShell version writes a UTC, `:`-free timestamp (e.g.
+  `…00-00-00-UTC`) so names are valid on Windows. Hence two expected trees,
+  selected by `EXPECTED_DIR`.
 - **`devices/{id}/backups` shape verified against the Unimus API v2 wiki.** The
   endpoint returns each backup inline with a base64 `bytes` field (alongside
   `id`, `validSince`, `validUntil`, `type`), so `all` mode is correct. Results are

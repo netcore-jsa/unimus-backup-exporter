@@ -1,0 +1,2 @@
+hostname router1
+interface eth0

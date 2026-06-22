@@ -24,32 +24,31 @@ Describe 'Save-Backup' {
 
 	It 'writes a TEXT backup with .txt extension and decoded content' {
 		$b64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("hello world`n"))
-		Save-Backup 1 '2021-01-01-00:00:00-UTC' $b64 'TEXT'
-		$f = "$global:backup_dir/10.0.0.1 - 1/Backup 10.0.0.1 2021-01-01-00:00:00-UTC 1.txt"
+		Save-Backup 1 '2021-01-01-00-00-00-UTC' $b64 'TEXT'
+		$f = "$global:backup_dir/10.0.0.1 - 1/Backup 10.0.0.1 2021-01-01-00-00-00-UTC 1.txt"
 		[IO.File]::Exists($f) | Should -BeTrue
 		[IO.File]::ReadAllText($f) | Should -Be "hello world`n"
 	}
 
 	It 'writes a BINARY backup with .bin extension' {
 		$b64 = [Convert]::ToBase64String([byte[]](0..15))
-		Save-Backup 2 '2021-04-01-00:00:00-UTC' $b64 'BINARY'
-		$f = "$global:backup_dir/switch01.lab - 2/Backup switch01.lab 2021-04-01-00:00:00-UTC 2.bin"
+		Save-Backup 2 '2021-04-01-00-00-00-UTC' $b64 'BINARY'
+		$f = "$global:backup_dir/switch01.lab - 2/Backup switch01.lab 2021-04-01-00-00-00-UTC 2.bin"
 		[IO.File]::Exists($f) | Should -BeTrue
 		[IO.File]::ReadAllBytes($f) | Should -Be ([byte[]](0..15))
 	}
 
 	It 'is idempotent: does not overwrite an existing backup' {
-		$f = "$global:backup_dir/10.0.0.1 - 1/Backup 10.0.0.1 2021-01-01-00:00:00-UTC 1.txt"
-		Save-Backup 1 '2021-01-01-00:00:00-UTC' ([Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("first`n"))) 'TEXT'
-		Save-Backup 1 '2021-01-01-00:00:00-UTC' ([Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("second`n"))) 'TEXT'
+		$f = "$global:backup_dir/10.0.0.1 - 1/Backup 10.0.0.1 2021-01-01-00-00-00-UTC 1.txt"
+		Save-Backup 1 '2021-01-01-00-00-00-UTC' ([Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("first`n"))) 'TEXT'
+		Save-Backup 1 '2021-01-01-00-00-00-UTC' ([Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("second`n"))) 'TEXT'
 		[IO.File]::ReadAllText($f) | Should -Be "first`n"
 	}
 }
 
 Describe 'Format-BackupDate' {
-	It 'reproduces the bash date format under TZ=UTC' {
-		$env:TZ = 'UTC'
-		Format-BackupDate 1609459200 | Should -Be '2021-01-01-00:00:00-UTC'
+	It 'produces a UTC, colon-free timestamp (Windows-safe)' {
+		Format-BackupDate 1609459200 | Should -Be '2021-01-01-00-00-00-UTC'
 	}
 }
 

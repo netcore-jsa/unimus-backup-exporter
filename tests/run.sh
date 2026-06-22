@@ -40,6 +40,7 @@ stage "powershell e2e (same suite, against the .ps1 version)"
 if command -v pwsh >/dev/null; then
   ( cd "$tests_dir" && EXPORTER_FILES="unimus-backup-exporter.ps1" \
       EXPORTER_CMD="pwsh ./unimus-backup-exporter.ps1" \
+      EXPECTED_DIR="expected_pwsh" \
       python3 -m unittest discover -s . -p 'test_*.py' -v ) || rc=1
 else
   echo "pwsh not installed - SKIPPED"

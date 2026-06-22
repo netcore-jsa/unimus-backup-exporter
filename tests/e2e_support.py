@@ -25,7 +25,9 @@ from pathlib import Path
 import dataset
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-EXPECTED = Path(__file__).resolve().parent / "expected"
+# Which expected tree to diff against: "expected" (Bash) or "expected_pwsh"
+# (PowerShell's Windows-safe filenames). Set EXPECTED_DIR for the PowerShell run.
+EXPECTED = Path(__file__).resolve().parent / os.environ.get("EXPECTED_DIR", "expected")
 
 ENV_NAME = "unimus-backup-exporter.env"  # the script sources this literal name
 

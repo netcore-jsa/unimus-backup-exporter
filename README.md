@@ -1,6 +1,6 @@
 # Unimus Backup Exporter
 
-The Unimus backup exporter exports backups from your [Unimus](https://unimus.net) server, stores them locally, and pushes them to a git repo if desired. It ships as two interchangeable, fully-featured implementations - a Bash script and a PowerShell script - that read the same config and produce identical output. Use whichever fits your environment.
+The Unimus backup exporter exports backups from your [Unimus](https://unimus.net) server, stores them locally, and pushes them to a git repo if desired. It ships as two fully-featured implementations - a Bash script for Linux/macOS and a PowerShell script for Windows (it also runs on Linux/macOS) - that read the same config and produce the same backups. Use whichever fits your environment.
 
 ## _Requirements_
 
@@ -8,7 +8,7 @@ The Bash version (`unimus-backup-exporter.sh`) requires `bash`, `curl`, `jq`, an
 
 Pushing to git (`export_type=git`) additionally needs `git` for either version, plus `ssh-keyscan` when using the `ssh` protocol.
 
-The PowerShell version targets Linux/macOS - the backup filenames contain `:` (from the timestamp), which is not a legal filename character on Windows.
+The PowerShell version runs on Windows, Linux, and macOS. To keep filenames valid on Windows it timestamps backups in UTC without `:`, so its filenames differ slightly from the Bash version's (which uses local time with `:`).
 
 ## _How to use the Exporter_
 
@@ -27,7 +27,7 @@ pwsh ./unimus-backup-exporter.ps1   # PowerShell
 
 After the script runs, you will find your backups nested in a "backups" folder. Each device's backups are in their own folder, labeled by the device address and the Unimus device ID.
 
-Both versions are interchangeable: they read the same `unimus-backup-exporter.env`, write the same `backups/` tree, and push to git the same way. A shared test suite verifies their output is byte-identical, so you can switch between them or run them against the same backup repo.
+Both versions read the same `unimus-backup-exporter.env`, produce the same backup contents, and push to git the same way. They differ only in the filename timestamp: the Bash version uses local time (with `:`), while the PowerShell version uses UTC without `:` so names stay valid on Windows. A shared test suite verifies each version against its expected output.
 
 ## _Configuration File_
 
@@ -76,9 +76,11 @@ To run your script periodically, the most common solution is scheduling a cron j
 0 3 * * * /path-to-script/unimus-backup-exporter.sh
 ```
 
+On Windows, schedule the PowerShell version with Task Scheduler, running `pwsh -File C:\path\to\unimus-backup-exporter.ps1`.
+
 ## _Tests_
 
-A shared test suite under `tests/` runs both the Bash and PowerShell versions against a mock Unimus API and asserts byte-identical output (plus identical git behavior). Run everything with:
+A shared test suite under `tests/` runs both the Bash and PowerShell versions against a mock Unimus API and checks each produces its expected backups (plus identical git behavior). Run everything with:
 
 ``` bash
 tests/run.sh

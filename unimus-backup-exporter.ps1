@@ -4,13 +4,13 @@
   device backups from a Unimus server via its REST API, decodes them to disk,
   and optionally commits and pushes them to a Git repo.
 
-  Interchangeable with the Bash version - it reads the same
-  unimus-backup-exporter.env, writes the same backups/<address> - <id>/Backup ...
-  tree, and drives git the same way. Timestamps, git, and ssh-keyscan are shelled
-  out to the same external commands, so the output is byte-identical.
+  Reads the same unimus-backup-exporter.env and drives git the same way as the
+  Bash version, with the same backups/<address> - <id>/ layout. The timestamp in
+  each filename is UTC and ':'-free so the names are valid on Windows; this makes
+  them differ from the Bash version's (which uses local time with ':'). git and
+  ssh-keyscan are shelled out to; the timestamp is computed in .NET.
 
-  Targets PowerShell 7+ on Linux/macOS (backup filenames contain ':' from the
-  time format, which is illegal on Windows).
+  Targets PowerShell 7+ on Windows, Linux, and macOS.
 #>
 
 # --- output helpers -------------------------------------------------------
@@ -88,9 +88,9 @@ function Get-UnimusStatus {
 
 # --- backup writing -------------------------------------------------------
 
-# Shell out to date so the timestamp matches `date "+%F-%T-%Z" -d "@<epoch>"`.
+# UTC timestamp with no ':' so the filename is valid on Windows.
 function Format-BackupDate($epoch) {
-	return (& date "+%F-%T-%Z" -d "@$epoch")
+	return [DateTimeOffset]::FromUnixTimeSeconds([long]$epoch).UtcDateTime.ToString('yyyy-MM-dd-HH-mm-ss') + '-UTC'
 }
 
 function Save-Backup($id, $date, $b64, $type) {
@@ -172,7 +172,10 @@ function Push-ToGit {
 		& git commit -m 'Initial Commit'
 		switch ($git_server_protocol) {
 			'ssh' {
-				& ssh-keyscan -H $git_server_address *>> "$env:HOME/.ssh/known_hosts"
+				$knownHosts = "$HOME/.ssh/known_hosts"
+				$sshDir = Split-Path -Parent $knownHosts
+				if (-not [IO.Directory]::Exists($sshDir)) { [IO.Directory]::CreateDirectory($sshDir) | Out-Null }
+				& ssh-keyscan -H $git_server_address *>> $knownHosts
 				# SSH may or may not require a password.
 				if ([string]::IsNullOrEmpty($git_password)) {
 					& git remote add origin "ssh://${git_username}@${git_server_address}/${git_repo_name}"
@@ -200,7 +203,7 @@ function Push-ToGit {
 		Invoke-ErrorCheck $LASTEXITCODE 'Failed to push to git'
 	} else {
 		& git add --all
-		& git commit -m "Unimus Git Extractor $(& date +'%b-%d-%y %H:%M')"
+		& git commit -m "Unimus Git Extractor $((Get-Date).ToString('MMM-dd-yy HH:mm'))"
 		& git push
 		Invoke-ErrorCheck $LASTEXITCODE 'Failed to push to git'
 	}
