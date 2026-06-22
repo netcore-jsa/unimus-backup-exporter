@@ -22,6 +22,16 @@ If you are using this script to push backups to git, it will create a local git 
 
 After the script runs. You will find your backups nested in a "backup" folder. Backups will be in their own folders, labeled by the Unimus Device ID, and the IP address.
 
+## _PowerShell port_
+
+A feature-compatible PowerShell port, `unimus-backup-exporter.ps1`, is also available. It reads the same `unimus-backup-exporter.env`, writes the same `backups/` tree, and pushes to git the same way - its output is byte-identical to the bash version (verified by a shared test suite). It targets PowerShell 7+ on Linux/macOS:
+
+``` pwsh
+pwsh ./unimus-backup-exporter.ps1
+```
+
+Requirements: `pwsh` (PowerShell 7+), plus `git` (only for `export_type=git`). On Windows the backup filenames contain `:` (from the timestamp), which is not a legal filename character, so the port targets Unix-like systems.
+
 ## _Configuration File_
 
 The most basic requirements for the script to operate are.
