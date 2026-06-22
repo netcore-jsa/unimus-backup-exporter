@@ -23,6 +23,7 @@ tests/
   test_git_e2e.py   # shared git-path tests (assert the git command trace)
   fakebin/          # fake git + ssh-keyscan (log argv; shared, language-agnostic)
   unit/bash/        # bats unit tests (Bash-only) + test_helper.bash
+  unit/pwsh/        # Pester unit tests (PowerShell-only)
   run.sh            # run everything locally
 ```
 
@@ -41,10 +42,11 @@ python3 tests/build_expected.py                  # regenerate expected/ after ed
 Requirements: `bash`, `curl`, `jq`, `base64`, `python3` (3.8+, stdlib only).
 `bats` is needed for the unit layer only; `run.sh`/CI skip it if absent.
 
-## Reusing for the PowerShell port
+## Testing the PowerShell port
 
-The black-box driver swaps the implementation via two env vars (see
-`e2e_support.py`); nothing else changes:
+The PowerShell port (`unimus-backup-exporter.ps1`) is verified by the **same**
+shared suite - the black-box driver swaps the implementation via two env vars
+(see `e2e_support.py`); nothing else changes:
 
 ```bash
 EXPORTER_FILES="unimus-backup-exporter.ps1" \
@@ -52,17 +54,26 @@ EXPORTER_CMD="pwsh ./unimus-backup-exporter.ps1" \
 python3 -m unittest discover -s tests -v
 ```
 
-`EXPORTER_FILES` is copied into a temp run dir; `EXPORTER_CMD` is run there with
-`cwd` = that dir and `TZ=UTC`. The driver writes the config as
-`unimus-backup-exporter.env` (the name the script sources) and expects output
-under `./backups/`. So the PowerShell port must:
+This runs every e2e and git-path test against the port and confirms it produces
+**byte-identical** output (the `expected/` trees) and **identical** git command
+traces. `EXPORTER_FILES` is copied into a temp run dir; `EXPORTER_CMD` is run
+there with `cwd` = that dir and `TZ=UTC`. The config is written as
+`unimus-backup-exporter.env` (the name both scripts read) and output is expected
+under `./backups/`. The contract the port must meet:
 
 1. read config from `unimus-backup-exporter.env` in its own directory,
 2. write to `./backups/`,
 3. produce the **exact** paths in `expected/` - see the file-naming contract in
-   `dataset.py` (`date_str` / `rel_path`).
+   `dataset.py` (`date_str` / `rel_path`),
+4. shell out to `git`/`ssh-keyscan` so the fake-git harness intercepts them.
 
-The expected trees are the contract that proves byte-for-byte parity between ports.
+The port's per-language unit tests are Pester, in `unit/pwsh/`:
+
+```bash
+pwsh -c 'Invoke-Pester -Path tests/unit/pwsh -CI'   # needs Pester 5
+```
+
+`tests/run.sh` runs both of the above automatically when `pwsh` is on PATH.
 
 You can also drive the PowerShell port manually against the mock:
 

@@ -34,3 +34,27 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y bats
       - name: Bash unit tests
         run: bats tests/unit/bash/
+
+  e2e-powershell:
+    runs-on: ubuntu-latest   # pwsh is preinstalled on GitHub-hosted ubuntu runners
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Black-box e2e against the PowerShell port
+        env:
+          EXPORTER_FILES: unimus-backup-exporter.ps1
+          EXPORTER_CMD: pwsh ./unimus-backup-exporter.ps1
+        run: python3 -m unittest discover -s tests -p 'test_*.py' -v
+
+  pester:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pester unit tests
+        shell: pwsh
+        run: |
+          Set-PSRepository PSGallery -InstallationPolicy Trusted
+          Install-Module Pester -MinimumVersion 5.0 -Force -SkipPublisherCheck
+          Invoke-Pester -Path tests/unit/pwsh -CI

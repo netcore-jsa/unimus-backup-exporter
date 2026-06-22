@@ -36,6 +36,23 @@ else
   echo "bats not installed - SKIPPED (https://github.com/bats-core/bats-core)"
 fi
 
+stage "powershell e2e (same suite, against the .ps1 port)"
+if command -v pwsh >/dev/null; then
+  ( cd "$tests_dir" && EXPORTER_FILES="unimus-backup-exporter.ps1" \
+      EXPORTER_CMD="pwsh ./unimus-backup-exporter.ps1" \
+      python3 -m unittest discover -s . -p 'test_*.py' -v ) || rc=1
+else
+  echo "pwsh not installed - SKIPPED"
+fi
+
+stage "powershell unit tests (Pester)"
+if command -v pwsh >/dev/null; then
+  # -PassThru + FailedCount as the exit code (avoids -CI's testResults.xml artifact).
+  pwsh -NoProfile -Command "exit (Invoke-Pester -Path '$tests_dir/unit/pwsh' -PassThru).FailedCount" || rc=1
+else
+  echo "pwsh not installed - SKIPPED (needs pwsh + Pester 5)"
+fi
+
 stage "summary"
 [ "$rc" -eq 0 ] && echo "ALL GREEN" || echo "FAILURES (exit $rc)"
 exit "$rc"
