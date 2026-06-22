@@ -195,7 +195,7 @@ function pushToGit(){
 		git commit -m 'Initial Commit'
 		case $git_server_protocol in
 			ssh)
-			ssh-keyscan -H git_server_address >> ~/.ssh/known_hosts
+			ssh-keyscan -H "$git_server_address" >> ~/.ssh/known_hosts
 			if [ -z "$git_password" ]; then
 				git remote add origin ssh://$git_username@$git_server_address/$git_repo_name
 				errorCheck "$?" 'Failed to add git repo'
