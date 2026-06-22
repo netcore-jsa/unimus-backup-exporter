@@ -191,6 +191,8 @@ function pushToGit(){
 	errorCheck "$?" 'Failed to enter backup directory'
 	if ! [ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" ]; then
 		git init
+		git config user.email "$git_email"
+		git config user.name "$git_username"
 		git add .
 		git commit -m 'Initial Commit'
 		case $git_server_protocol in
