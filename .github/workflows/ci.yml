@@ -12,9 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # Gated at error severity for now (shellcheck is preinstalled on the
-      # runner). Tighten to `warning`/`style` after the quoting/printf cleanup.
-      - run: shellcheck --severity=error unimus-backup-exporter.sh
+      # shellcheck is preinstalled on the runner; the script is clean at the
+      # default (style) severity.
+      - run: shellcheck unimus-backup-exporter.sh
 
   e2e:
     runs-on: ubuntu-latest
