@@ -148,7 +148,7 @@ function getAllBackups(){
 				saveBackup "$deviceId" "$date" "$backup" "$type"
 				let backupCount++
 			done
-		if [ $(jq -e '.data | length == 0' <<< $contents) ] >/dev/null; then
+		if ( jq -e '.data | length == 0' <<< $contents ) >/dev/null; then
 				break
 		fi
 		done
@@ -178,7 +178,7 @@ function getLatestBackups(){
 		done
 
 		# Breaks if empty page.
-		if [ $(jq -e '.data | length == 0' <<< $contents) ] >/dev/null; then
+		if ( jq -e '.data | length == 0' <<< $contents ) >/dev/null; then
 			break
 		fi
 	done
