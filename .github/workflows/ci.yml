@@ -1,24 +1,20 @@
-# CI workflow TEMPLATE for the test suite.
-#
-# This file lives under tests/ so all testing code stays in one place. GitHub
-# only runs workflows from .github/workflows/, so activate it with:
-#
-#     mkdir -p .github/workflows && cp tests/ci.yml .github/workflows/ci.yml
-#
-# (Keep it as a copy, not a symlink -- GitHub Actions does not follow symlinks.)
-
-name: tests
+name: CI
 
 on:
   push:
   pull_request:
+
+permissions:
+  contents: read
 
 jobs:
   shellcheck:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: shellcheck unimus-backup-exporter.sh
+      # Gated at error severity for now (shellcheck is preinstalled on the
+      # runner). Tighten to `warning`/`style` after the quoting/printf cleanup.
+      - run: shellcheck --severity=error unimus-backup-exporter.sh
 
   e2e:
     runs-on: ubuntu-latest

@@ -21,8 +21,10 @@ tests/
   test_e2e.py       # the shared end-to-end tests
   unit/bash/        # bats unit tests (Bash-only) + test_helper.bash
   run.sh            # run everything locally
-  ci.yml            # CI workflow template -> copy to .github/workflows/
 ```
+
+CI (`.github/workflows/ci.yml`) runs the same three stages - shellcheck, the
+Python e2e suite, and bats - on every push and pull request.
 
 ## Running
 
