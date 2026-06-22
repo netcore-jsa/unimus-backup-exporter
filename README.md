@@ -52,6 +52,8 @@ export_type
 
 If your Unimus server uses a self-signed certificate, you can skip TLS certificate verification by uncommenting `insecure="-k"` in the env file. Leave it commented out otherwise.
 
+By default the backup folder and file names use spaces as separators (e.g. `10.0.0.1 - 1/Backup 10.0.0.1 ... 1.txt`). To use a different separator - underscores, say, which are easier to work with on the command line - set `separator="_"` in the env file. Leaving it unset keeps the original spaced names.
+
 In addition to these basic requirements, using git requires some of these additional settings:
 
 ``` text

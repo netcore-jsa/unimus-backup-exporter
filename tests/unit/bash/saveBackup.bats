@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 # Unit tests for saveBackup() -- the single file-writing sink.
-# Bash-specific (not reusable by the PowerShell port); the PS port gets its own
-# Pester unit tests. The shared contract lives in the e2e + expected layer.
+# Bash-specific (the PowerShell version has its own Pester unit tests). The
+# shared contract lives in the e2e + expected layer.
 
 load test_helper
 
@@ -37,4 +37,17 @@ teardown() {
   saveBackup 1 "2021-01-01-00:00:00-UTC" "$(printf 'first\n' | base64)" TEXT
   saveBackup 1 "2021-01-01-00:00:00-UTC" "$(printf 'second\n' | base64)" TEXT
   [ "$(cat "$f")" = "first" ]
+}
+
+@test "honors a custom separator (issue #8)" {
+  separator='_'
+  run saveBackup 1 "2021-01-01-00:00:00-UTC" "$(printf 'x\n' | base64)" TEXT
+  [ "$status" -eq 0 ]
+  [ -f "$backup_dir/10.0.0.1_-_1/Backup_10.0.0.1_2021-01-01-00:00:00-UTC_1.txt" ]
+}
+
+@test "defaults to a space separator when unset" {
+  unset separator
+  run saveBackup 1 "2021-01-01-00:00:00-UTC" "$(printf 'x\n' | base64)" TEXT
+  [ -f "$backup_dir/10.0.0.1 - 1/Backup 10.0.0.1 2021-01-01-00:00:00-UTC 1.txt" ]
 }

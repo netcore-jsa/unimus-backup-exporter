@@ -17,6 +17,7 @@ Describe 'Save-Backup' {
 		$global:backup_dir = $global:tmp
 		$global:log = Join-Path $global:tmp 'log'
 		$global:devices = @{ '1' = '10.0.0.1'; '2' = 'switch01.lab' }
+		$global:separator = $null
 	}
 	AfterEach {
 		Remove-Item -Recurse -Force $global:tmp -ErrorAction SilentlyContinue
@@ -43,6 +44,14 @@ Describe 'Save-Backup' {
 		Save-Backup 1 '2021-01-01-00-00-00-UTC' ([Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("first`n"))) 'TEXT'
 		Save-Backup 1 '2021-01-01-00-00-00-UTC' ([Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("second`n"))) 'TEXT'
 		[IO.File]::ReadAllText($f) | Should -Be "first`n"
+	}
+
+	It 'honors a custom separator (issue #8)' {
+		$global:separator = '_'
+		$b64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("x`n"))
+		Save-Backup 1 '2021-01-01-00-00-00-UTC' $b64 'TEXT'
+		$f = "$global:backup_dir/10.0.0.1_-_1/Backup_10.0.0.1_2021-01-01-00-00-00-UTC_1.txt"
+		[IO.File]::Exists($f) | Should -BeTrue
 	}
 }
 

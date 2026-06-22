@@ -106,18 +106,22 @@ function unimusStatusCheck(){
 # Decodes and Saves Backup
 function saveBackup(){
 	local address="${devices[$1]}"
+	# Separator between name parts; defaults to a space for backward compatibility.
+	local sep="${separator:- }"
 	local type
 	if [ "$4" == 'TEXT' ]; then
 		type='txt'
 	elif [ "$4" == 'BINARY' ]; then
 		type='bin'
 	fi
-	if ! [ -d "$backup_dir/$address - $1" ]; then
-		mkdir "$backup_dir/$address - $1"
+	local dir="$backup_dir/${address}${sep}-${sep}${1}"
+	local file="$dir/Backup${sep}${address}${sep}${2}${sep}${1}.${type}"
+	if ! [ -d "$dir" ]; then
+		mkdir "$dir"
 		errorCheck "$?" 'Failed to create device folder'
 	fi
-	if ! [ -e "$backup_dir/$address - $1/Backup $address $2 $1.$type" ]; then
-		base64 -d <<< "$3" > "$backup_dir/$address - $1/Backup $address $2 $1.$type"
+	if ! [ -e "$file" ]; then
+		base64 -d <<< "$3" > "$file"
 	fi
 }
 

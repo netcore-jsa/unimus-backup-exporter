@@ -95,15 +95,17 @@ function Format-BackupDate($epoch) {
 
 function Save-Backup($id, $date, $b64, $type) {
 	$address = $devices[[string]$id]
+	# Separator between name parts; defaults to a space for backward compatibility.
+	$sep = if ([string]::IsNullOrEmpty($separator)) { ' ' } else { $separator }
 	$ext = ''
 	if ($type -eq 'TEXT') { $ext = 'txt' }
 	elseif ($type -eq 'BINARY') { $ext = 'bin' }
 
-	$dir = "$backup_dir/$address - $id"
+	$dir = "$backup_dir/${address}${sep}-${sep}${id}"
 	if (-not [IO.Directory]::Exists($dir)) {
 		[IO.Directory]::CreateDirectory($dir) | Out-Null
 	}
-	$file = "$dir/Backup $address $date $id.$ext"
+	$file = "$dir/Backup${sep}${address}${sep}${date}${sep}${id}.${ext}"
 	if (-not [IO.File]::Exists($file)) {
 		[IO.File]::WriteAllBytes($file, [Convert]::FromBase64String($b64))
 	}
