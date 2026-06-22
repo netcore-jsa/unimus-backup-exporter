@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Fake `git` for the shared git-path harness.
+#
+# Records each invocation's argv (tab-separated) to $FAKEGIT_TRACE and exits 0,
+# so the exporter's git interactions can be asserted without a real repo or
+# remote. Language-agnostic: it intercepts the `git` CLI, so it works for the
+# Bash exporter and any other implementation (e.g. the PowerShell port) that
+# shells out to `git`.
+#
+# Special case: `rev-parse --is-inside-work-tree` selects which pushToGit branch
+# runs -- it prints "true" only when FAKEGIT_WORKTREE is set (subsequent-run
+# branch); otherwise it prints nothing (first-run branch).
+: "${FAKEGIT_TRACE:=/dev/null}"
+
+if [ "$1" = "rev-parse" ] && [ "$2" = "--is-inside-work-tree" ]; then
+	[ -n "$FAKEGIT_WORKTREE" ] && echo true
+	exit 0
+fi
+
+{ printf 'git'; for arg in "$@"; do printf '\t%s' "$arg"; done; printf '\n'; } >> "$FAKEGIT_TRACE"
+exit 0

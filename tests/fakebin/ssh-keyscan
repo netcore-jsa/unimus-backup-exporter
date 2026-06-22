@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Fake `ssh-keyscan` for the shared git-path harness: record argv to
+# $FAKEGIT_TRACE, emit a dummy host key (so `>> ~/.ssh/known_hosts` has
+# something to write), and exit 0.
+: "${FAKEGIT_TRACE:=/dev/null}"
+
+{ printf 'ssh-keyscan'; for arg in "$@"; do printf '\t%s' "$arg"; done; printf '\n'; } >> "$FAKEGIT_TRACE"
+echo "# fake hostkey"
+exit 0

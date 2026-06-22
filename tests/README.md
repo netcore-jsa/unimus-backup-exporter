@@ -18,7 +18,10 @@ tests/
   build_expected.py   # renders expected/ from dataset.py
   expected/           # expected output trees (the cross-port contract)
   e2e_support.py    # copies impl into a temp dir, runs it, diffs the tree
-  test_e2e.py       # the shared end-to-end tests
+  test_e2e.py       # shared e2e tests (filesystem export)
+  git_support.py    # git-mode driver: fake git on PATH + trace parsing
+  test_git_e2e.py   # shared git-path tests (assert the git command trace)
+  fakebin/          # fake git + ssh-keyscan (log argv; shared, language-agnostic)
   unit/bash/        # bats unit tests (Bash-only) + test_helper.bash
   run.sh            # run everything locally
 ```
@@ -73,6 +76,20 @@ python3 tests/mock_server.py --port 8085      # prints the api key to use
 Edit `dataset.py` (devices / backups), then `python3 tests/build_expected.py` to
 regenerate expected, and add a case in `test_e2e.py`. Because the mock server and
 the expected builder both read `dataset.py`, fixtures and expectations cannot drift.
+
+## Git-path tests
+
+`test_git_e2e.py` runs the exporter in `export_type=git` mode with the fake
+`git`/`ssh-keyscan` from `fakebin/` on PATH (wired up by `git_support.py`). Each
+git invocation is recorded to a trace file and asserted - the remote URL per
+protocol, that `ssh-keyscan` gets the configured address, the git identity, and
+the first-run vs subsequent-run branch. No real repo or remote is touched.
+
+Because the fakes intercept the `git` CLI, this harness is shared with the
+PowerShell port - on one condition: **the port must shell out to `git`** (not a
+native git library), or the PATH shim won't intercept it. The fakes are bash
+scripts, so they cover the Bash exporter and `pwsh` on Linux; testing the port on
+Windows would need a `.cmd`/`.ps1` shim, but the driver and assertions stay shared.
 
 ## Caveats
 

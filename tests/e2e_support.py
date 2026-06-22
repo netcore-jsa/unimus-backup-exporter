@@ -33,21 +33,27 @@ DEFAULT_FILES = "unimus-backup-exporter.sh"
 DEFAULT_CMD = "./unimus-backup-exporter.sh"
 
 
-def _env_file(server_url, backup_type, api_key):
-    return (
-        f'unimus_server_address="{server_url}"\n'
-        f'unimus_api_key="{api_key}"\n'
-        f'backup_type="{backup_type}"\n'
-        f'export_type="fs"\n'
-    )
+def _env_file(server_url, backup_type, api_key, export_type="fs", extra=None):
+    lines = [
+        f'unimus_server_address="{server_url}"',
+        f'unimus_api_key="{api_key}"',
+        f'backup_type="{backup_type}"',
+        f'export_type="{export_type}"',
+    ]
+    for key, value in (extra or {}).items():
+        lines.append(f'{key}="{value}"')
+    return "\n".join(lines) + "\n"
 
 
-def run_exporter(workdir, server_url, backup_type, api_key=None):
+def run_exporter(workdir, server_url, backup_type, api_key=None,
+                 export_type="fs", config_extra=None, env_extra=None):
     """Copy the implementation into `workdir`, run it against `server_url`,
     return (CompletedProcess, Path-to-produced-backups-dir).
 
     TZ=UTC makes the timestamped filenames deterministic and matches the expected
-    trees built by build_expected.py.
+    trees built by build_expected.py. `config_extra` adds keys to the generated
+    .env (e.g. the git_* vars); `env_extra` overrides subprocess environment
+    variables (e.g. PATH/HOME for the fake-git harness).
     """
     workdir = Path(workdir)
     for rel in shlex.split(os.environ.get("EXPORTER_FILES", DEFAULT_FILES)):
@@ -57,10 +63,13 @@ def run_exporter(workdir, server_url, backup_type, api_key=None):
 
     if api_key is None:
         api_key = dataset.API_KEY
-    (workdir / ENV_NAME).write_text(_env_file(server_url, backup_type, api_key))
+    (workdir / ENV_NAME).write_text(
+        _env_file(server_url, backup_type, api_key, export_type, config_extra))
 
     cmd = shlex.split(os.environ.get("EXPORTER_CMD", DEFAULT_CMD))
     env = dict(os.environ, TZ="UTC")
+    if env_extra:
+        env.update(env_extra)
     proc = subprocess.run(
         cmd, cwd=workdir, env=env,
         capture_output=True, text=True, timeout=120,
