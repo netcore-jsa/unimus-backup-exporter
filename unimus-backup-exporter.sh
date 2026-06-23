@@ -292,7 +292,7 @@ function importVariables(){
 
 
 function main(){
-	SCRIPT_VERSION='1.1.0'
+	SCRIPT_VERSION='2.0.0'
 
 	# Set script directory and working dir for script
 	script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)

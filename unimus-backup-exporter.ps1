@@ -273,7 +273,7 @@ function Import-Variables {
 # --- main -----------------------------------------------------------------
 
 function Invoke-Main {
-	$script:SCRIPT_VERSION = '1.1.0'
+	$script:SCRIPT_VERSION = '2.0.0'
 
 	$script:script_dir = $PSScriptRoot
 	Set-Location -LiteralPath $script_dir
