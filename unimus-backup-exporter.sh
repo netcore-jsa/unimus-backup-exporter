@@ -131,26 +131,22 @@ function getAllDevices(){
 	# Device field used to name folders; defaults to the address (the IP).
 	local field="${device_name_field:-address}"
 	for ((page=0; ; page+=1)); do
-		local contents
+		local contents rows id address name
 		contents=$(unimusGet "devices?page=$page")
 		errorCheck "$?" 'Unable to get device data from unimus'
-		for((data=0; ; data+=1)); do
-			if ( jq -e ".data[$data] | length == 0" <<< "$contents") >/dev/null; then
-				break
-			fi
-			local id address name
-			id=$(jq -e -r ".data[$data].id" <<< "$contents")
-			address=$(jq -e -r ".data[$data].address" <<< "$contents")
-			name=$(jq -r ".data[$data].$field // \"\"" <<< "$contents")
+		# Parse the whole page once into id/address/name TSV rows (one jq call
+		# per page rather than several per device).
+		rows=$(jq -r --arg f "$field" '.data[] | [.id, .address, (.[$f] // "")] | @tsv' <<< "$contents")
+		if [ -z "$rows" ]; then
+			break
+		fi
+		while IFS=$'\t' read -r id address name; do
 			# Fall back to the address if the chosen field is empty or missing.
 			if [ -z "$name" ]; then
 				name="$address"
 			fi
 			devices["$id"]="$name"
-		done
-		if ( jq -e '.data | length == 0' <<< "$contents" ) >/dev/null; then
-			break
-		fi
+		done <<< "$rows"
 	done
 }
 
@@ -159,24 +155,19 @@ function getAllBackups(){
 	local backupCount=0
 	for key in "${!devices[@]}"; do
 		for ((page=0; ; page+=1)); do
-			local contents
+			local contents rows validSince type backup date
 			contents=$(unimusGet "devices/$key/backups?page=$page")
 			errorCheck "$?" 'Unable to get all backups from unimus'
-			for ((data=0; ; data+=1)); do
-				if ( jq -e ".data[$data] | length == 0" <<< "$contents") >/dev/null; then
-					break
-				fi
-				local deviceId="$key"
-				local date backup type
-				date=$(jq -e -r ".data[$data].validSince" <<< "$contents" | { read -r tme ; date "+%F-%T-%Z" -d "@$tme" ; })
-				backup=$(jq -e -r ".data[$data].bytes" <<< "$contents")
-				type=$(jq -e -r ".data[$data].type" <<< "$contents")
-				saveBackup "$deviceId" "$date" "$backup" "$type"
-				backupCount=$((backupCount + 1))
-			done
-			if ( jq -e '.data | length == 0' <<< "$contents" ) >/dev/null; then
+			# One jq pass per page emits validSince/type/bytes TSV rows.
+			rows=$(jq -r '.data[] | [.validSince, .type, .bytes] | @tsv' <<< "$contents")
+			if [ -z "$rows" ]; then
 				break
 			fi
+			while IFS=$'\t' read -r validSince type backup; do
+				date=$(date "+%F-%T-%Z" -d "@$validSince")
+				saveBackup "$key" "$date" "$backup" "$type"
+				backupCount=$((backupCount + 1))
+			done <<< "$rows"
 		done
 	done
 	echoGreen "$backupCount backups exported"
@@ -188,27 +179,19 @@ function getLatestBackups(){
 	local backupCount=0
 	# Query for latest backups. This will loop through getting every page
 	for ((page=0; ; page+=1)); do
-		local contents
+		local contents rows deviceId validSince type backup date
 		contents=$(unimusGet "devices/backups/latest?page=$page")
 		errorCheck "$?" 'Unable to get latest backups from unimus'
-		for ((data=0; ; data+=1)); do
-			# Breaks if looped through all devices
-			if ( jq -e ".data[$data] | length == 0" <<< "$contents") >/dev/null; then
-				break
-			fi
-			local deviceId date backup type
-			deviceId=$(jq -e -r ".data[$data].deviceId" <<< "$contents")
-			date=$(jq -e -r ".data[$data].backup.validSince" <<< "$contents" | { read -r tme ; date "+%F-%T-%Z" -d "@$tme" ; })
-			backup=$(jq -e -r ".data[$data].backup.bytes" <<< "$contents")
-			type=$(jq -e -r ".data[$data].backup.type" <<< "$contents")
-			saveBackup "$deviceId" "$date" "$backup" "$type"
-			backupCount=$((backupCount + 1))
-		done
-
-		# Breaks if empty page.
-		if ( jq -e '.data | length == 0' <<< "$contents" ) >/dev/null; then
+		# One jq pass per page emits deviceId/validSince/type/bytes TSV rows.
+		rows=$(jq -r '.data[] | [.deviceId, .backup.validSince, .backup.type, .backup.bytes] | @tsv' <<< "$contents")
+		if [ -z "$rows" ]; then
 			break
 		fi
+		while IFS=$'\t' read -r deviceId validSince type backup; do
+			date=$(date "+%F-%T-%Z" -d "@$validSince")
+			saveBackup "$deviceId" "$date" "$backup" "$type"
+			backupCount=$((backupCount + 1))
+		done <<< "$rows"
 	done
 	echoGreen "$backupCount backups exported"
 }
