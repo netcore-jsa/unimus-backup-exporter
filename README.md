@@ -1,5 +1,7 @@
 # Unimus Backup Exporter
 
+[![CI](https://github.com/netcore-jsa/unimus-backup-exporter/actions/workflows/ci.yml/badge.svg)](https://github.com/netcore-jsa/unimus-backup-exporter/actions/workflows/ci.yml)
+
 The Unimus backup exporter exports backups from your [Unimus](https://unimus.net) server, stores them locally, and pushes them to a git repo if desired. It ships as two fully-featured implementations - a Bash script for Linux/macOS and a PowerShell script for Windows (it also runs on Linux/macOS) - that read the same config and produce the same backups. Use whichever fits your environment.
 
 ## _Requirements_
@@ -25,7 +27,17 @@ If you are using this script to push backups to git, it will create a local git 
 pwsh ./unimus-backup-exporter.ps1   # PowerShell
 ```
 
-After the script runs, you will find your backups nested in a "backups" folder. Each device's backups are in their own folder, labeled by the device address and the Unimus device ID.
+After the script runs, you will find your backups nested in a "backups" folder. Each device's backups are in their own folder, labeled by the device address and the Unimus device ID:
+
+``` text
+backups/
+  10.0.0.1 - 72/
+    Backup 10.0.0.1 2023-05-31-10:30:50-AEST 72.txt
+  10.0.0.3 - 73/
+    Backup 10.0.0.3 2023-05-31-10:31:02-AEST 73.txt
+```
+
+The folder/file naming is configurable: `separator="_"` replaces the spaces (e.g. `10.0.0.1_-_72/`), and `device_name_field="description"` names folders by hostname (e.g. `router1 - 72/`). See the Configuration File section.
 
 Both versions read the same `unimus-backup-exporter.env`, produce the same backup contents, and push to git the same way. They differ only in the filename timestamp: the Bash version uses local time (with `:`), while the PowerShell version uses UTC without `:` so names stay valid on Windows. A shared test suite verifies each version against its expected output.
 
