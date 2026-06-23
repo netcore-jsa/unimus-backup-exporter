@@ -56,6 +56,8 @@ By default the backup folder and file names use spaces as separators (e.g. `10.0
 
 By default device folders are named by the device's IP address. To name them by the device description instead - typically the hostname, which is friendlier in DNS-managed environments - set `device_name_field="description"` in the env file. Devices without a description fall back to their address.
 
+For large installations, `page_size` (default 50) controls how many records the script requests per API call. It bounds the JSON returned per request; leaving it unset keeps the default.
+
 In addition to these basic requirements, using git requires some of these additional settings:
 
 ``` text

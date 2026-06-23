@@ -18,11 +18,12 @@ teardown() {
 # Device 2 has an empty description to exercise the address fallback.
 _stub_unimus() {
   unimusGet() {
-    if [ "$1" = "devices?page=0" ]; then
-      echo '{"data":[{"id":1,"address":"10.0.0.1","description":"router1"},{"id":2,"address":"10.0.0.2","description":""}]}'
-    else
-      echo '{"data":[]}'
-    fi
+    case "$1" in
+      *page=0)
+        echo '{"data":[{"id":1,"address":"10.0.0.1","description":"router1"},{"id":2,"address":"10.0.0.2","description":""}]}' ;;
+      *)
+        echo '{"data":[]}' ;;
+    esac
   }
 }
 

@@ -130,9 +130,11 @@ function getAllDevices(){
 	echoGreen 'Getting Device Information'
 	# Device field used to name folders; defaults to the address (the IP).
 	local field="${device_name_field:-address}"
+	# Page size; bounds the JSON each request returns (matters on large installs).
+	local size="${page_size:-50}"
 	for ((page=0; ; page+=1)); do
 		local contents rows id address name
-		contents=$(unimusGet "devices?page=$page")
+		contents=$(unimusGet "devices?size=$size&page=$page")
 		errorCheck "$?" 'Unable to get device data from unimus'
 		# Parse the whole page once into id/address/name TSV rows (one jq call
 		# per page rather than several per device).
@@ -153,10 +155,11 @@ function getAllDevices(){
 
 function getAllBackups(){
 	local backupCount=0
+	local size="${page_size:-50}"
 	for key in "${!devices[@]}"; do
 		for ((page=0; ; page+=1)); do
 			local contents rows validSince type backup date
-			contents=$(unimusGet "devices/$key/backups?page=$page")
+			contents=$(unimusGet "devices/$key/backups?size=$size&page=$page")
 			errorCheck "$?" 'Unable to get all backups from unimus'
 			# One jq pass per page emits validSince/type/bytes TSV rows.
 			rows=$(jq -r '.data[] | [.validSince, .type, .bytes] | @tsv' <<< "$contents")
@@ -177,10 +180,11 @@ function getAllBackups(){
 # Will Pull down backups and save to Disk
 function getLatestBackups(){
 	local backupCount=0
+	local size="${page_size:-50}"
 	# Query for latest backups. This will loop through getting every page
 	for ((page=0; ; page+=1)); do
 		local contents rows deviceId validSince type backup date
-		contents=$(unimusGet "devices/backups/latest?page=$page")
+		contents=$(unimusGet "devices/backups/latest?size=$size&page=$page")
 		errorCheck "$?" 'Unable to get latest backups from unimus'
 		# One jq pass per page emits deviceId/validSince/type/bytes TSV rows.
 		rows=$(jq -r '.data[] | [.deviceId, .backup.validSince, .backup.type, .backup.bytes] | @tsv' <<< "$contents")

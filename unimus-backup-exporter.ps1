@@ -115,9 +115,11 @@ function Get-AllDevices {
 	Write-EchoGreen 'Getting Device Information'
 	# Device field used to name folders; defaults to the address (the IP).
 	$field = if ([string]::IsNullOrEmpty($device_name_field)) { 'address' } else { $device_name_field }
+	# Page size; bounds the JSON each request returns (matters on large installs).
+	$size = if ([string]::IsNullOrEmpty($page_size)) { 50 } else { $page_size }
 	$page = 0
 	while ($true) {
-		$contents = Invoke-UnimusGet "devices?page=$page"
+		$contents = Invoke-UnimusGet "devices?size=$size&page=$page"
 		$items = @($contents.data)
 		foreach ($d in $items) {
 			$name = $d.$field
@@ -132,10 +134,11 @@ function Get-AllDevices {
 
 function Get-AllBackups {
 	$backupCount = 0
+	$size = if ([string]::IsNullOrEmpty($page_size)) { 50 } else { $page_size }
 	foreach ($key in @($devices.Keys)) {
 		$page = 0
 		while ($true) {
-			$contents = Invoke-UnimusGet "devices/$key/backups?page=$page"
+			$contents = Invoke-UnimusGet "devices/$key/backups?size=$size&page=$page"
 			$items = @($contents.data)
 			foreach ($b in $items) {
 				$date = Format-BackupDate $b.validSince
@@ -151,9 +154,10 @@ function Get-AllBackups {
 
 function Get-LatestBackups {
 	$backupCount = 0
+	$size = if ([string]::IsNullOrEmpty($page_size)) { 50 } else { $page_size }
 	$page = 0
 	while ($true) {
-		$contents = Invoke-UnimusGet "devices/backups/latest?page=$page"
+		$contents = Invoke-UnimusGet "devices/backups/latest?size=$size&page=$page"
 		$items = @($contents.data)
 		foreach ($b in $items) {
 			$date = Format-BackupDate $b.backup.validSince
