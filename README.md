@@ -54,6 +54,8 @@ If your Unimus server uses a self-signed certificate, you can skip TLS certifica
 
 By default the backup folder and file names use spaces as separators (e.g. `10.0.0.1 - 1/Backup 10.0.0.1 ... 1.txt`). To use a different separator - underscores, say, which are easier to work with on the command line - set `separator="_"` in the env file. Leaving it unset keeps the original spaced names.
 
+By default device folders are named by the device's IP address. To name them by the device description instead - typically the hostname, which is friendlier in DNS-managed environments - set `device_name_field="description"` in the env file. Devices without a description fall back to their address.
+
 In addition to these basic requirements, using git requires some of these additional settings:
 
 ``` text

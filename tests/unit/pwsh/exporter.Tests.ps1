@@ -101,3 +101,34 @@ Describe 'Test-LatestVersion' {
 		Should -Invoke Write-EchoYellow -Times 0
 	}
 }
+
+Describe 'Get-AllDevices' {
+	BeforeEach {
+		$global:log = [IO.Path]::GetTempFileName()
+		$global:devices = @{}
+		$global:device_name_field = $null
+		# page 0 returns two devices (device 2 has an empty description), later pages empty.
+		Mock Invoke-UnimusGet {
+			if ($path -like '*page=0') {
+				[pscustomobject]@{ data = @(
+						[pscustomobject]@{ id = 1; address = '10.0.0.1'; description = 'router1' },
+						[pscustomobject]@{ id = 2; address = '10.0.0.2'; description = '' }) }
+			} else {
+				[pscustomobject]@{ data = @() }
+			}
+		}
+	}
+
+	It 'defaults to naming by address' {
+		Get-AllDevices | Out-Null
+		$global:devices['1'] | Should -Be '10.0.0.1'
+		$global:devices['2'] | Should -Be '10.0.0.2'
+	}
+
+	It 'names by a custom field, falling back to address when empty (issue #11)' {
+		$global:device_name_field = 'description'
+		Get-AllDevices | Out-Null
+		$global:devices['1'] | Should -Be 'router1'      # description used
+		$global:devices['2'] | Should -Be '10.0.0.2'     # empty description -> address fallback
+	}
+}

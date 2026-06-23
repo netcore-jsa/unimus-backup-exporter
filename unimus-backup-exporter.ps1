@@ -113,12 +113,17 @@ function Save-Backup($id, $date, $b64, $type) {
 
 function Get-AllDevices {
 	Write-EchoGreen 'Getting Device Information'
+	# Device field used to name folders; defaults to the address (the IP).
+	$field = if ([string]::IsNullOrEmpty($device_name_field)) { 'address' } else { $device_name_field }
 	$page = 0
 	while ($true) {
 		$contents = Invoke-UnimusGet "devices?page=$page"
 		$items = @($contents.data)
 		foreach ($d in $items) {
-			$devices[[string]$d.id] = [string]$d.address
+			$name = $d.$field
+			# Fall back to the address if the chosen field is empty or missing.
+			if ([string]::IsNullOrEmpty($name)) { $name = $d.address }
+			$devices[[string]$d.id] = [string]$name
 		}
 		if ($items.Count -eq 0) { break }
 		$page++

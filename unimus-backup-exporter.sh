@@ -128,6 +128,8 @@ function saveBackup(){
 
 function getAllDevices(){
 	echoGreen 'Getting Device Information'
+	# Device field used to name folders; defaults to the address (the IP).
+	local field="${device_name_field:-address}"
 	for ((page=0; ; page+=1)); do
 		local contents
 		contents=$(unimusGet "devices?page=$page")
@@ -136,10 +138,15 @@ function getAllDevices(){
 			if ( jq -e ".data[$data] | length == 0" <<< "$contents") >/dev/null; then
 				break
 			fi
-			local id address
+			local id address name
 			id=$(jq -e -r ".data[$data].id" <<< "$contents")
 			address=$(jq -e -r ".data[$data].address" <<< "$contents")
-			devices["$id"]="$address"
+			name=$(jq -r ".data[$data].$field // \"\"" <<< "$contents")
+			# Fall back to the address if the chosen field is empty or missing.
+			if [ -z "$name" ]; then
+				name="$address"
+			fi
+			devices["$id"]="$name"
 		done
 		if ( jq -e '.data | length == 0' <<< "$contents" ) >/dev/null; then
 			break
