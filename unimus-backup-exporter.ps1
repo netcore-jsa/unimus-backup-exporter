@@ -124,7 +124,9 @@ function Get-AllDevices {
 	$page = 0
 	while ($true) {
 		$contents = Invoke-UnimusGet "devices?size=$size&page=$page"
-		$items = @($contents.data)
+		# Drop nulls so a missing/null `data` yields an empty page and breaks the
+		# loop (matches the Bash version); @($null) would otherwise have Count 1.
+		$items = @($contents.data | Where-Object { $null -ne $_ })
 		foreach ($d in $items) {
 			$name = $d.$field
 			# Fall back to the address if the chosen field is empty or missing.
@@ -143,7 +145,7 @@ function Get-AllBackups {
 		$page = 0
 		while ($true) {
 			$contents = Invoke-UnimusGet "devices/$key/backups?size=$size&page=$page"
-			$items = @($contents.data)
+			$items = @($contents.data | Where-Object { $null -ne $_ })
 			foreach ($b in $items) {
 				$date = Format-BackupDate $b.validSince
 				Save-Backup $key $date $b.bytes $b.type
@@ -162,7 +164,7 @@ function Get-LatestBackups {
 	$page = 0
 	while ($true) {
 		$contents = Invoke-UnimusGet "devices/backups/latest?size=$size&page=$page"
-		$items = @($contents.data)
+		$items = @($contents.data | Where-Object { $null -ne $_ })
 		foreach ($b in $items) {
 			$date = Format-BackupDate $b.backup.validSince
 			Save-Backup $b.deviceId $date $b.backup.bytes $b.backup.type

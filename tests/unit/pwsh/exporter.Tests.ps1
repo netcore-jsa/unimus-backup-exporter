@@ -131,4 +131,19 @@ Describe 'Get-AllDevices' {
 		$global:devices['1'] | Should -Be 'router1'      # description used
 		$global:devices['2'] | Should -Be '10.0.0.2'     # empty description -> address fallback
 	}
+
+	It 'terminates when a page returns a null data array (no infinite loop)' {
+		# A `data: null`/missing body must end pagination; @($null) would have
+		# Count 1 and loop forever.
+		Mock Invoke-UnimusGet {
+			if ($path -like '*page=0') {
+				[pscustomobject]@{ data = @([pscustomobject]@{ id = 1; address = '10.0.0.1' }) }
+			} else {
+				[pscustomobject]@{ data = $null }
+			}
+		}
+		Get-AllDevices | Out-Null
+		$global:devices.Count | Should -Be 1
+		$global:devices['1'] | Should -Be '10.0.0.1'
+	}
 }
