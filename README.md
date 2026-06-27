@@ -41,6 +41,27 @@ The folder/file naming is configurable: `separator="_"` replaces the spaces (e.g
 
 Both versions read the same `unimus-backup-exporter.env`, produce the same backup contents, and push to git the same way. They differ only in the filename timestamp: the Bash version uses local time (with `:`), while the PowerShell version uses UTC without `:` so names stay valid on Windows. A shared test suite verifies each version against its expected output.
 
+## _Running on Windows_
+
+The PowerShell version requires PowerShell 7 or newer. Windows ships with Windows PowerShell 5.1, which is not supported - double-clicking the `.ps1` or launching it from a `powershell` prompt uses 5.1, and the script will refuse to run with a version error.
+
+Install PowerShell 7 once, for example with `winget`:
+
+``` powershell
+winget install --id Microsoft.PowerShell --source winget
+```
+
+Alternatively, download the MSI from the [PowerShell releases](https://github.com/PowerShell/PowerShell/releases) page. PowerShell 7 installs alongside Windows PowerShell as a separate `pwsh` command; it does not replace 5.1.
+
+Then run the script with `pwsh` from the script's directory:
+
+``` powershell
+cd C:\path\to\unimus-backup-exporter
+pwsh .\unimus-backup-exporter.ps1
+```
+
+To run it on a schedule, see the Automating the exporter section.
+
 ## _Configuration File_
 
 The most basic requirements for the script to operate are:
