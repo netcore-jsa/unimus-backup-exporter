@@ -1,3 +1,5 @@
+#Requires -Version 7.0
+
 <#
 .SYNOPSIS
   Fully-featured PowerShell alternative to unimus-backup-exporter.sh: pulls
@@ -77,7 +79,9 @@ function Invoke-UnimusGet([string]$path) {
 	try {
 		return Invoke-RestMethod @params
 	} catch {
-		Write-EchoRed 'Unable to get data from unimus server'
+		# Surface the underlying error so misconfig (bad URL/cert, wrong
+		# PowerShell version, etc.) is diagnosable rather than masked.
+		Write-EchoRed "Unable to get data from unimus server: $($_.Exception.Message)"
 		exit 1
 	}
 }
